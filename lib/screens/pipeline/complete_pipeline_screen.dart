@@ -43,6 +43,18 @@ class _CompletePipelineScreenState extends State<CompletePipelineScreen> {
     'cold_air_pooling_index': 0.1,
   };
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final user = context.read<AuthProvider>().user;
+      if (user == null || !user.isAdmin) {
+        Navigator.of(context).pop();
+      }
+    });
+  }
+
   Future<void> _runCompletePipeline() async {
     setState(() {
       _isLoading = true;

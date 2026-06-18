@@ -145,26 +145,6 @@ class AppDrawer extends StatelessWidget {
 
                   // Divider
                   Divider(color: Color(0xFF334155), height: 1),
-                  
-                  // Try Demo
-                  _buildMenuItem(
-                    context,
-                    icon: Icons.play_circle_outline,
-                    title: 'Try Demo',
-                    subtitle: 'See WIE in action',
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => DemoScreen(),
-                        ),
-                      );
-                    },
-                  ),
-
-                  // Divider
-                  Divider(color: Color(0xFF334155), height: 1),
 
                   // Tools Section Header
                   _buildSectionHeader('Tools'),
@@ -284,6 +264,21 @@ class AppDrawer extends StatelessWidget {
 
                   // Admin-specific Tools
                   if (user.isAdmin) ...[
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.play_circle_outline,
+                      title: 'Try Demo',
+                      subtitle: 'See WIE in action',
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => DemoScreen(),
+                          ),
+                        );
+                      },
+                    ),
                     _buildMenuItem(
                       context,
                       icon: Icons.account_tree,

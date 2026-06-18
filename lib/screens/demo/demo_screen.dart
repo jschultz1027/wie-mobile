@@ -24,7 +24,15 @@ class _DemoScreenState extends State<DemoScreen> {
   @override
   void initState() {
     super.initState();
-    _loadDemo();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final user = context.read<AuthProvider>().user;
+      if (user == null || !user.isAdmin) {
+        Navigator.of(context).pop();
+        return;
+      }
+      _loadDemo();
+    });
   }
 
   Future<void> _loadDemo() async {
