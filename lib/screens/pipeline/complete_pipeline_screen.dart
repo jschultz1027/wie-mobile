@@ -6,6 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import '../../models/weather_snapshot.dart';
 import '../../models/pipeline_prediction.dart';
+import '../../widgets/app_drawer.dart';
+import '../../widgets/app_menu_button.dart';
 import '../../config/app_colors.dart';
 import '../../config/app_config.dart';
 import '../../services/storage_service.dart';
@@ -786,13 +788,11 @@ class _CompletePipelineScreenState extends State<CompletePipelineScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const AppDrawer(),
       appBar: AppBar(
         backgroundColor: AppColors.slate900,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: const AppMenuButton(),
         title: const Text(
           'Complete Pipeline Demo',
           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),

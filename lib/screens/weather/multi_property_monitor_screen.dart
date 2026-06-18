@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../../widgets/app_drawer.dart';
+import '../../widgets/app_menu_button.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import '../../config/app_colors.dart';
@@ -279,15 +281,13 @@ class _MultiPropertyMonitorScreenState extends State<MultiPropertyMonitorScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const AppDrawer(),
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         backgroundColor: AppColors.slate900,
         foregroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: const AppMenuButton(),
         title: const Text(
           'Multi-Property Monitor',
           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),

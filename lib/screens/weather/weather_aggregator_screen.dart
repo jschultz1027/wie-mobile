@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../../widgets/app_drawer.dart';
+import '../../widgets/app_menu_button.dart';
 import '../../config/app_colors.dart';
 import '../../config/app_config.dart';
 import '../../models/weather_snapshot.dart';
@@ -144,14 +146,12 @@ class _WeatherAggregatorScreenState extends State<WeatherAggregatorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const AppDrawer(),
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: AppColors.slate900,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: const AppMenuButton(),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

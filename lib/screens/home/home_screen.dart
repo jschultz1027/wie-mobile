@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'dart:async';
 import '../../config/app_colors.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/app_menu_button.dart';
 import '../../widgets/app_drawer.dart';
 import '../../services/api_service.dart';
 
@@ -103,19 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
             pinned: true,
             backgroundColor: AppColors.slate900,
             elevation: 0,
-            leading: Builder(
-              builder: (context) => IconButton(
-                icon: Container(
-                  padding: EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Icons.menu, color: AppColors.slate900),
-                ),
-                onPressed: () => Scaffold.of(context).openDrawer(),
-              ),
-            ),
+            leading: const AppMenuButton(),
             flexibleSpace: FlexibleSpaceBar(
               background: Stack(
                 children: [

@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../../widgets/app_drawer.dart';
+import '../../widgets/app_menu_button.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -310,14 +312,12 @@ class _WinterHazardMonitorScreenState extends State<WinterHazardMonitorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const AppDrawer(),
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: AppColors.slate900,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: const AppMenuButton(),
         title: Text(
           'Winter Hazard Monitor',
           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),

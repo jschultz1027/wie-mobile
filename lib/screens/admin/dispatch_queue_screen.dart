@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../widgets/app_drawer.dart';
+import '../../widgets/app_menu_button.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_colors.dart';
 import '../../models/dispatch_queue.dart';
@@ -174,15 +176,16 @@ class _DispatchQueueScreenState extends State<DispatchQueueScreen> {
     final auth = context.watch<AuthProvider>();
     if (auth.user != null && !auth.user!.isAdmin) {
       WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) Navigator.of(context).pop(); });
-      return Scaffold(appBar: AppBar(title: const Text('Dispatch Queue')), body: const Center(child: Text('Admin only')));
+      return Scaffold(drawer: const AppDrawer(), appBar: AppBar(title: const Text('Dispatch Queue')), body: const Center(child: Text('Admin only')));
     }
 
     return Scaffold(
+      drawer: const AppDrawer(),
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         backgroundColor: AppColors.slate900,
         elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: () => Navigator.pop(context)),
+        leading: const AppMenuButton(),
         title: const Text('Dispatch Queue', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
       ),
       body: _loading

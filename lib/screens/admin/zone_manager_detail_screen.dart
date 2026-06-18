@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../widgets/app_drawer.dart';
+import '../../widgets/app_menu_button.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_colors.dart';
 import '../../models/property.dart';
@@ -164,14 +166,12 @@ class _ZoneManagerDetailScreenState extends State<ZoneManagerDetailScreen> {
     final isAdmin = auth.user?.isAdmin ?? false;
 
     return Scaffold(
+      drawer: const AppDrawer(),
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         backgroundColor: AppColors.slate900,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: const AppMenuButton(),
         title: const Text(
           'Zone Manager',
           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),

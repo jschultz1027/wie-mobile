@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../widgets/app_drawer.dart';
+import '../../widgets/app_menu_button.dart';
 import 'package:chewie/chewie.dart';
 import 'package:video_player/video_player.dart';
 import '../../config/app_colors.dart';
@@ -111,14 +113,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const AppDrawer(),
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: AppColors.slate900,
         foregroundColor: Colors.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: const AppMenuButton(),
         title: Text(widget.title),
       ),
       body: Center(

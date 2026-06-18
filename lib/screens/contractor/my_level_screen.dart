@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../widgets/app_drawer.dart';
+import '../../widgets/app_menu_button.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_colors.dart';
 import '../../models/my_level.dart';
@@ -184,14 +186,12 @@ class _MyLevelScreenState extends State<MyLevelScreen> {
     final progress = data != null && nextTier != null ? _progressToNext(data, nextTier) : 0;
 
     return Scaffold(
+      drawer: const AppDrawer(),
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         backgroundColor: AppColors.slate900,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: const AppMenuButton(),
         title: const Text(
           'My Level',
           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),

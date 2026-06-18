@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../widgets/app_drawer.dart';
+import '../../widgets/app_menu_button.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../config/app_colors.dart';
@@ -304,14 +306,12 @@ class _GetVerifiedScreenState extends State<GetVerifiedScreen> {
     final voidChequeStatus = _statusFor('void_cheque');
 
     return Scaffold(
+      drawer: const AppDrawer(),
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         backgroundColor: AppColors.slate900,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: const AppMenuButton(),
         title: const Text(
           'Get Verified',
           style: TextStyle(

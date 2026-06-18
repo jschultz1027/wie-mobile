@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../../widgets/app_drawer.dart';
+import '../../widgets/app_menu_button.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -893,14 +895,12 @@ class _ContractorAvailabilityScreenState extends State<ContractorAvailabilityScr
     final availableCount = _blocks.where((b) => b.status == 'available').length;
 
     return Scaffold(
+      drawer: const AppDrawer(),
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: AppColors.slate900,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: const AppMenuButton(),
         title: Text(
           'My Availability',
           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),

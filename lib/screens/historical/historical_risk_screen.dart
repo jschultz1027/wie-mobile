@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../../widgets/app_drawer.dart';
+import '../../widgets/app_menu_button.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -314,13 +316,11 @@ class _HistoricalRiskScreenState extends State<HistoricalRiskScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const AppDrawer(),
       appBar: AppBar(
         backgroundColor: AppColors.slate900,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: const AppMenuButton(),
         title: Text(
           'Historical Risk Scores',
           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../widgets/app_drawer.dart';
+import '../../widgets/app_menu_button.dart';
 import '../../config/app_colors.dart';
 import '../../models/zone_attributes.dart';
 import '../../services/zone_manager_service.dart';
@@ -181,14 +183,12 @@ class _ZoneEditScreenState extends State<ZoneEditScreen> {
     }
 
     return Scaffold(
+      drawer: const AppDrawer(),
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         backgroundColor: AppColors.slate900,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: const AppMenuButton(),
         title: Text(
           _zone.id != null && _zone.id! > 0 ? 'Edit Zone' : 'New Zone',
           style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),

@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../../widgets/app_drawer.dart';
+import '../../widgets/app_menu_button.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import '../../config/app_colors.dart';
@@ -164,14 +166,12 @@ class _DemoScreenState extends State<DemoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const AppDrawer(),
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: AppColors.slate900,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: const AppMenuButton(),
         title: Text(
           'WIE Demo',
           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),

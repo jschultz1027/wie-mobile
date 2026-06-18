@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../widgets/app_drawer.dart';
+import '../../widgets/app_menu_button.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_colors.dart';
 import '../../models/snow_removal_contract.dart';
@@ -48,20 +50,19 @@ class _SnowRemovalContractScreenState extends State<SnowRemovalContractScreen> {
         if (mounted) Navigator.of(context).pop();
       });
       return Scaffold(
+        drawer: const AppDrawer(),
         appBar: AppBar(title: const Text('Snow Removal Contract')),
         body: const Center(child: Text('Client only')),
       );
     }
 
     return Scaffold(
+      drawer: const AppDrawer(),
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         backgroundColor: AppColors.slate900,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: const AppMenuButton(),
         title: const Text(
           'Snow Removal Contract',
           style: TextStyle(

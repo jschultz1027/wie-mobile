@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../../widgets/app_drawer.dart';
+import '../../widgets/app_menu_button.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import '../../config/app_colors.dart';
@@ -320,20 +322,19 @@ class _ClientPortalScreenState extends State<ClientPortalScreen> {
         if (mounted) Navigator.of(context).pop();
       });
       return Scaffold(
+        drawer: const AppDrawer(),
         appBar: AppBar(title: const Text('Client Portal')),
         body: const Center(child: Text('Client only')),
       );
     }
 
     return Scaffold(
+      drawer: const AppDrawer(),
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         backgroundColor: AppColors.slate900,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: const AppMenuButton(),
         title: const Text(
           'Client Portal',
           style: TextStyle(
