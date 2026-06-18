@@ -5,6 +5,7 @@ import '../../providers/auth_provider.dart';
 import '../../utils/app_notification.dart';
 import '../home/home_screen.dart';
 import 'register_screen.dart';
+import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -173,13 +174,37 @@ class _LoginScreenState extends State<LoginScreen> {
                       SizedBox(height: 24),
                       
                       // Password Label
-                      Text(
-                        'Password',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Password',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const ForgotPasswordScreen(),
+                                ),
+                              );
+                            },
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              foregroundColor: Color(0xFF60A5FA),
+                            ),
+                            child: Text(
+                              'Forgot password?',
+                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                            ),
+                          ),
+                        ],
                       ),
                       SizedBox(height: 10),
                       // Password Field - Bigger touch target

@@ -128,6 +128,46 @@ class AuthService {
     await _storage.clearAll();
   }
 
+  /// Request a 6-digit password reset code (always returns generic success message).
+  Future<String> forgotPassword(String email) async {
+    final response = await _api.post(
+      AppConfig.forgotPasswordEndpoint,
+      body: {'email': email.trim()},
+      includeAuth: false,
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      return data['message'] as String? ??
+          'If an account exists with that email, a reset code has been sent.';
+    }
+    throw Exception(_api.getErrorMessage(response));
+  }
+
+  /// Reset password using email, 6-digit code, and new password.
+  Future<String> resetPassword({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    final response = await _api.post(
+      AppConfig.resetPasswordEndpoint,
+      body: {
+        'email': email.trim(),
+        'code': code,
+        'new_password': newPassword,
+      },
+      includeAuth: false,
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      return data['message'] as String? ??
+          'Password reset successfully. You can now log in.';
+    }
+    throw Exception(_api.getErrorMessage(response));
+  }
+
   // Check if logged in
   bool isLoggedIn() {
     return _storage.isLoggedIn();
