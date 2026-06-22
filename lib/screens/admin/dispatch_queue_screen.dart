@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/app_menu_button.dart';
+import '../../config/help_content.dart';
+import '../../widgets/tap_tooltip.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_colors.dart';
 import '../../models/dispatch_queue.dart';
@@ -187,6 +189,12 @@ class _DispatchQueueScreenState extends State<DispatchQueueScreen> {
         elevation: 0,
         leading: const AppMenuButton(),
         title: const Text('Dispatch Queue', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+        actions: [
+          ScreenHelpAction(
+            title: 'Dispatch Queue',
+            message: HelpContent.screenDispatchQueue,
+          ),
+        ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/app_menu_button.dart';
+import '../../config/help_content.dart';
+import '../../widgets/tap_tooltip.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_colors.dart';
 import '../../models/property.dart';
@@ -176,6 +178,12 @@ class _ZoneManagerDetailScreenState extends State<ZoneManagerDetailScreen> {
           'Zone Manager',
           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
         ),
+        actions: [
+          ScreenHelpAction(
+            title: 'Zone Detail',
+            message: HelpContent.screenZoneDetail,
+          ),
+        ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())

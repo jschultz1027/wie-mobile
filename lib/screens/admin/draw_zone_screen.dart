@@ -2,6 +2,8 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../../config/app_colors.dart';
+import '../../config/help_content.dart';
+import '../../widgets/tap_tooltip.dart';
 import '../../models/zone_attributes.dart';
 import '../../services/zone_manager_service.dart';
 
@@ -104,6 +106,10 @@ class _DrawZoneScreenState extends State<DrawZoneScreen> {
           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
         ),
         actions: [
+          ScreenHelpAction(
+            title: 'Draw Zone',
+            message: HelpContent.screenDrawZone,
+          ),
           TextButton(
             onPressed: _points.length >= 3 ? _finish : null,
             child: Text(

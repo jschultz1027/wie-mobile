@@ -2,6 +2,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/app_menu_button.dart';
+import '../../widgets/refresh_icon_button.dart';
+import '../../config/help_content.dart';
+import '../../widgets/tap_tooltip.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -906,10 +909,13 @@ class _ContractorAvailabilityScreenState extends State<ContractorAvailabilityScr
           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.refresh, color: Colors.white),
-            onPressed: _loading ? null : _loadAvailability,
-            tooltip: 'Refresh',
+          ScreenHelpAction(
+            title: 'My Availability',
+            message: HelpContent.screenMyAvailability,
+          ),
+          RefreshIconButton(
+            loading: _loading,
+            onPressed: _loadAvailability,
           ),
         ],
       ),

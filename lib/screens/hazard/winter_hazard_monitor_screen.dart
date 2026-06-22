@@ -3,6 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/app_menu_button.dart';
+import '../../widgets/refresh_icon_button.dart';
+import '../../config/help_content.dart';
+import '../../widgets/tap_tooltip.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -72,6 +75,14 @@ class _WinterHazardMonitorScreenState extends State<WinterHazardMonitorScreen> {
     }
     
     _loadSites();
+  }
+
+  Future<void> _refresh() async {
+    if (_sites.isNotEmpty && _selectedSite != null) {
+      await _loadHazardData();
+    } else {
+      await _checkAuthAndLoad();
+    }
   }
 
   @override
@@ -323,9 +334,13 @@ class _WinterHazardMonitorScreenState extends State<WinterHazardMonitorScreen> {
           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.refresh, color: Colors.white),
-            onPressed: _loading ? null : () => _checkAuthAndLoad(),
+          ScreenHelpAction(
+            title: 'Winter Hazard Monitor',
+            message: HelpContent.screenWinterHazard,
+          ),
+          RefreshIconButton(
+            loading: _loading,
+            onPressed: _refresh,
           ),
         ],
       ),
@@ -385,7 +400,7 @@ class _WinterHazardMonitorScreenState extends State<WinterHazardMonitorScreen> {
                 )
               else
                 ElevatedButton.icon(
-                  onPressed: () => _checkAuthAndLoad(),
+                  onPressed: _refresh,
                   icon: Icon(Icons.refresh),
                   label: Text('Retry'),
                 style: ElevatedButton.styleFrom(

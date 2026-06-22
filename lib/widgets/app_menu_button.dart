@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../config/help_content.dart';
+import 'help_overlay.dart';
 
 /// Hamburger button that opens [Scaffold.drawer]. Use with [AppDrawer] on the same scaffold.
 class AppMenuButton extends StatelessWidget {
@@ -17,6 +19,11 @@ class AppMenuButton extends StatelessWidget {
           scaffold.openDrawer();
         }
       },
+      onLongPress: () => showHelpSheet(
+        context,
+        title: 'Navigation menu',
+        message: HelpContent.menuButton,
+      ),
     );
   }
 }

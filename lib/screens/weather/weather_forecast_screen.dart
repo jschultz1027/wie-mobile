@@ -4,6 +4,9 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/app_menu_button.dart';
+import '../../widgets/refresh_icon_button.dart';
+import '../../config/help_content.dart';
+import '../../widgets/tap_tooltip.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import '../../config/app_colors.dart';
@@ -108,18 +111,13 @@ class _WeatherForecastScreenState extends State<WeatherForecastScreen> {
           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
         ),
         actions: [
-          IconButton(
-            icon: _loading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    ),
-                  )
-                : const Icon(Icons.refresh),
-            onPressed: _loading ? null : _loadForecast,
+          ScreenHelpAction(
+            title: 'Weather Forecast',
+            message: HelpContent.screenWeatherForecast,
+          ),
+          RefreshIconButton(
+            loading: _loading,
+            onPressed: _loadForecast,
           ),
         ],
       ),

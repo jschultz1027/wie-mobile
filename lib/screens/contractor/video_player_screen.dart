@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/app_menu_button.dart';
+import '../../config/help_content.dart';
+import '../../widgets/tap_tooltip.dart';
 import 'package:chewie/chewie.dart';
 import 'package:video_player/video_player.dart';
 import '../../config/app_colors.dart';
@@ -120,6 +122,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         foregroundColor: Colors.white,
         leading: const AppMenuButton(),
         title: Text(widget.title),
+        actions: [
+          ScreenHelpAction(
+            title: 'Training Video',
+            message: HelpContent.screenVideoPlayer,
+          ),
+        ],
       ),
       body: Center(
         child: _isLoading

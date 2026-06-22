@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/app_menu_button.dart';
+import '../../config/help_content.dart';
+import '../../widgets/tap_tooltip.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_colors.dart';
 import '../../models/payments_billing.dart';
@@ -167,6 +169,12 @@ class _PaymentsBillingScreenState extends State<PaymentsBillingScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          ScreenHelpAction(
+            title: 'Payments & Billing',
+            message: HelpContent.screenPaymentsBilling,
+          ),
+        ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())

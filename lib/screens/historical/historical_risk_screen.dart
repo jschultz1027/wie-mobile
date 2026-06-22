@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/app_menu_button.dart';
+import '../../config/help_content.dart';
+import '../../widgets/tap_tooltip.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -325,6 +327,12 @@ class _HistoricalRiskScreenState extends State<HistoricalRiskScreen> {
           'Historical Risk Scores',
           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
         ),
+        actions: [
+          ScreenHelpAction(
+            title: 'Historical Risk',
+            message: HelpContent.screenHistoricalRisk,
+          ),
+        ],
       ),
       body: _loading
           ? Center(child: CircularProgressIndicator())

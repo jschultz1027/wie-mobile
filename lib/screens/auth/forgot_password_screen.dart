@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../config/app_colors.dart';
+import '../../config/help_content.dart';
+import '../../widgets/tap_tooltip.dart';
 import '../../services/auth_service.dart';
 import '../../utils/app_notification.dart';
 import 'login_screen.dart';
@@ -77,7 +78,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         height: double.infinity,
         decoration: BoxDecoration(gradient: AppColors.primaryGradient),
         child: SafeArea(
-          child: SingleChildScrollView(
+          child: Stack(
+            children: [
+              SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -117,16 +120,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
-                        'Email Address',
+                      HelpLabel(
+                        label: 'Email Address',
+                        help: HelpContent.forgotPasswordEmail,
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
                           color: Colors.white,
                         ),
+                        iconColor: Color(0xFF93C5FD),
                       ),
                       SizedBox(height: 10),
-                      TextFormField(
+                      TapTooltip(
+                        title: 'Email Address',
+                        message: HelpContent.forgotPasswordEmail,
+                        triggerOnLongPressOnly: true,
+                        child: TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                         style: TextStyle(color: Colors.white, fontSize: 16),
@@ -141,8 +150,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           return null;
                         },
                       ),
+                      ),
                       SizedBox(height: 32),
-                      Container(
+                      TapTooltip(
+                        title: 'Send Reset Code',
+                        message: HelpContent.forgotPasswordSubmit,
+                        triggerOnLongPressOnly: true,
+                        child: Container(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [Color(0xFF2563EB), AppColors.blue500],
@@ -179,11 +193,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                 ),
                         ),
                       ),
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
+          ),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: ScreenHelpAction(
+                  title: 'Forgot Password',
+                  message: HelpContent.screenForgotPassword,
+                ),
+              ),
+            ],
           ),
         ),
       ),

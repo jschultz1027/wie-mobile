@@ -28,6 +28,10 @@ import '../screens/admin/dispatch_intelligence_screen.dart';
 import '../screens/admin/dispatch_queue_screen.dart';
 import '../screens/admin/contractor_management_screen.dart';
 import '../screens/legal/terms_and_privacy_screen.dart';
+import '../config/help_content.dart';
+import 'help_overlay.dart';
+import 'tap_tooltip.dart';
+import '../screens/support/support_ticket_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -138,6 +142,7 @@ class AppDrawer extends StatelessWidget {
                     context,
                     icon: Icons.home,
                     title: 'Home',
+                    help: HelpContent.home,
                     onTap: () {
                       Navigator.pop(context);
                     },
@@ -147,7 +152,7 @@ class AppDrawer extends StatelessWidget {
                   Divider(color: Color(0xFF334155), height: 1),
 
                   // Tools Section Header
-                  _buildSectionHeader('Tools'),
+                  _buildSectionHeader('Tools', HelpContent.toolsSection),
 
                   // Winter Hazard Monitor (All users)
                   _buildMenuItem(
@@ -157,6 +162,7 @@ class AppDrawer extends StatelessWidget {
                     subtitle: user.isClient
                         ? 'Your properties risk'
                         : 'Real-time risk assessment',
+                    help: HelpContent.winterHazard,
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -175,6 +181,7 @@ class AppDrawer extends StatelessWidget {
                       icon: Icons.dashboard,
                       title: 'Property Dashboard',
                       subtitle: 'Real-time safety monitoring',
+                      help: HelpContent.propertyDashboard,
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(
@@ -190,6 +197,7 @@ class AppDrawer extends StatelessWidget {
                       icon: Icons.map,
                       title: 'Client Portal',
                       subtitle: 'Property management & zones',
+                      help: HelpContent.clientPortal,
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(
@@ -205,6 +213,7 @@ class AppDrawer extends StatelessWidget {
                       icon: Icons.history,
                       title: 'Historical Risk Scores',
                       subtitle: 'Dispute resolution',
+                      help: HelpContent.historicalRisk,
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(
@@ -220,6 +229,7 @@ class AppDrawer extends StatelessWidget {
                       icon: Icons.payment,
                       title: 'Payments & Billing',
                       subtitle: 'Invoices & history',
+                      help: HelpContent.paymentsBilling,
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(
@@ -235,6 +245,7 @@ class AppDrawer extends StatelessWidget {
                       icon: Icons.description,
                       title: 'Service Reports',
                       subtitle: 'Past service history',
+                      help: HelpContent.serviceReports,
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(
@@ -250,6 +261,7 @@ class AppDrawer extends StatelessWidget {
                       icon: Icons.file_present,
                       title: 'Snow Removal Contract',
                       subtitle: 'Contract details',
+                      help: HelpContent.snowRemovalContract,
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(
@@ -269,6 +281,7 @@ class AppDrawer extends StatelessWidget {
                       icon: Icons.play_circle_outline,
                       title: 'Try Demo',
                       subtitle: 'See WIE in action',
+                      help: HelpContent.tryDemo,
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(
@@ -284,6 +297,7 @@ class AppDrawer extends StatelessWidget {
                       icon: Icons.account_tree,
                       title: 'Complete Pipeline Demo',
                       subtitle: 'End-to-end system demo',
+                      help: HelpContent.completePipeline,
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(
@@ -299,6 +313,7 @@ class AppDrawer extends StatelessWidget {
                       icon: Icons.history,
                       title: 'Historical Risk Scores',
                       subtitle: 'Audit trails',
+                      help: HelpContent.historicalRisk,
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(
@@ -314,6 +329,7 @@ class AppDrawer extends StatelessWidget {
                       icon: Icons.layers,
                       title: 'Zone Manager',
                       subtitle: 'Define risk zones',
+                      help: HelpContent.zoneManager,
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.of(context).push(
@@ -328,6 +344,7 @@ class AppDrawer extends StatelessWidget {
                       icon: Icons.map,
                       title: 'Multi-Property Monitor',
                       subtitle: 'Monitor locations',
+                      help: HelpContent.multiProperty,
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(
@@ -343,6 +360,7 @@ class AppDrawer extends StatelessWidget {
                       icon: Icons.people,
                       title: 'Contractor Management',
                       subtitle: 'Profiles & compliance',
+                      help: HelpContent.contractorManagement,
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(
@@ -358,6 +376,7 @@ class AppDrawer extends StatelessWidget {
                       icon: Icons.send,
                       title: 'Dispatch Intelligence',
                       subtitle: 'AI-powered dispatch',
+                      help: HelpContent.dispatchIntelligence,
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(
@@ -373,6 +392,7 @@ class AppDrawer extends StatelessWidget {
                       icon: Icons.queue,
                       title: 'Dispatch Queue',
                       subtitle: 'Assign contractors',
+                      help: HelpContent.dispatchQueue,
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(
@@ -388,6 +408,7 @@ class AppDrawer extends StatelessWidget {
                       icon: Icons.calendar_month,
                       title: 'Availability Calendar',
                       subtitle: 'Contractor schedules',
+                      help: HelpContent.availabilityCalendar,
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(
@@ -407,6 +428,7 @@ class AppDrawer extends StatelessWidget {
                       icon: Icons.work,
                       title: 'My Shifts',
                       subtitle: 'Shift management & assignments',
+                      help: HelpContent.myShifts,
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(
@@ -422,6 +444,7 @@ class AppDrawer extends StatelessWidget {
                       icon: Icons.calendar_today,
                       title: 'My Availability',
                       subtitle: 'Manage your schedule',
+                      help: HelpContent.myAvailability,
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(
@@ -437,6 +460,7 @@ class AppDrawer extends StatelessWidget {
                       icon: Icons.history,
                       title: 'Shift History',
                       subtitle: 'Past shifts & earnings',
+                      help: HelpContent.shiftHistory,
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(
@@ -452,6 +476,7 @@ class AppDrawer extends StatelessWidget {
                       icon: Icons.local_shipping,
                       title: 'My Equipment',
                       subtitle: 'Manage your fleet',
+                      help: HelpContent.myEquipment,
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(
@@ -467,6 +492,7 @@ class AppDrawer extends StatelessWidget {
                       icon: Icons.emoji_events,
                       title: 'My Level',
                       subtitle: 'Rankings & advancement',
+                      help: HelpContent.myLevel,
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(
@@ -482,6 +508,7 @@ class AppDrawer extends StatelessWidget {
                       icon: Icons.verified_user,
                       title: 'Get Verified',
                       subtitle: 'Upload documents',
+                      help: HelpContent.getVerified,
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(
@@ -497,6 +524,7 @@ class AppDrawer extends StatelessWidget {
                       icon: Icons.payment,
                       title: 'Payments',
                       subtitle: 'Earnings & invoices',
+                      help: HelpContent.contractorPayments,
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(
@@ -516,6 +544,7 @@ class AppDrawer extends StatelessWidget {
                     icon: Icons.cloud,
                     title: 'Weather Aggregator',
                     subtitle: 'Multi-source data',
+                    help: HelpContent.weatherAggregator,
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -531,6 +560,7 @@ class AppDrawer extends StatelessWidget {
                     icon: Icons.wb_cloudy,
                     title: 'Weather Forecast',
                     subtitle: '48-hour predictions',
+                    help: HelpContent.weatherForecast,
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -542,6 +572,27 @@ class AppDrawer extends StatelessWidget {
                     },
                   ),
 
+                  // Support (clients & contractors only — matches web)
+                  if (!user.isAdmin) ...[
+                    Divider(color: Color(0xFF334155), height: 1),
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.support_agent,
+                      title: 'Open Support Ticket',
+                      subtitle: 'Billing, service issues, app help',
+                      help: HelpContent.supportTicket,
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SupportTicketScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+
                   // Legal
                   Divider(color: Color(0xFF334155), height: 1),
                   _buildMenuItem(
@@ -549,6 +600,7 @@ class AppDrawer extends StatelessWidget {
                     icon: Icons.gavel,
                     title: 'Terms & Privacy',
                     subtitle: 'Terms and Privacy Policy',
+                    help: HelpContent.termsPrivacy,
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -570,6 +622,7 @@ class AppDrawer extends StatelessWidget {
               icon: Icons.logout,
               title: 'Logout',
               isDestructive: true,
+              help: HelpContent.logout,
               onTap: () {
                 authProvider.logout();
                 Navigator.of(context).pushAndRemoveUntil(
@@ -585,8 +638,8 @@ class AppDrawer extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionHeader(String title) {
-    return Padding(
+  Widget _buildSectionHeader(String title, [String? help]) {
+    final header = Padding(
       padding: EdgeInsets.fromLTRB(24, 16, 24, 8),
       child: Text(
         title,
@@ -598,6 +651,12 @@ class AppDrawer extends StatelessWidget {
         ),
       ),
     );
+    if (help == null) return header;
+    return TapTooltip(
+      title: title,
+      message: help,
+      child: header,
+    );
   }
 
   Widget _buildMenuItem(
@@ -605,6 +664,7 @@ class AppDrawer extends StatelessWidget {
     required IconData icon,
     required String title,
     String? subtitle,
+    String? help,
     required VoidCallback onTap,
     bool isDestructive = false,
   }) {
@@ -612,6 +672,9 @@ class AppDrawer extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
+        onLongPress: help != null
+            ? () => showHelpSheet(context, title: title, message: help)
+            : null,
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
@@ -657,6 +720,14 @@ class AppDrawer extends StatelessWidget {
                   ],
                 ),
               ),
+              if (help != null)
+                HelpIcon(
+                  message: help,
+                  title: title,
+                  color: Color(0xFF94A3B8),
+                  size: 16,
+                ),
+              if (help != null) SizedBox(width: 4),
               Icon(
                 Icons.chevron_right,
                 color: Color(0xFF475569), // slate-600

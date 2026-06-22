@@ -5,6 +5,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/app_menu_button.dart';
+import '../../config/help_content.dart';
+import '../../widgets/tap_tooltip.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:toastification/toastification.dart';
@@ -406,6 +408,10 @@ class _MyEquipmentScreenState extends State<MyEquipmentScreen> {
             style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
           actions: [
+            ScreenHelpAction(
+              title: 'My Equipment',
+              message: HelpContent.screenMyEquipment,
+            ),
             IconButton(
               icon: const Icon(Icons.add, color: Colors.white),
               onPressed: () {

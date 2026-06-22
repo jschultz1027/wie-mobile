@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/app_menu_button.dart';
+import '../../config/help_content.dart';
+import '../../widgets/tap_tooltip.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../config/app_colors.dart';
@@ -321,6 +323,12 @@ class _GetVerifiedScreenState extends State<GetVerifiedScreen> {
             letterSpacing: -0.3,
           ),
         ),
+        actions: [
+          ScreenHelpAction(
+            title: 'Get Verified',
+            message: HelpContent.screenGetVerified,
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: _load,

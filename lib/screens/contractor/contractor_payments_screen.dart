@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/app_menu_button.dart';
+import '../../config/help_content.dart';
+import '../../widgets/tap_tooltip.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_colors.dart';
 import '../../models/contractor_payments.dart';
@@ -134,6 +136,12 @@ class _ContractorPaymentsScreenState extends State<ContractorPaymentsScreen> {
             letterSpacing: -0.3,
           ),
         ),
+        actions: [
+          ScreenHelpAction(
+            title: 'Payments',
+            message: HelpContent.screenContractorPayments,
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: _load,

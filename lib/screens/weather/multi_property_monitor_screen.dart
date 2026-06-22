@@ -3,6 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/app_menu_button.dart';
+import '../../widgets/refresh_icon_button.dart';
+import '../../config/help_content.dart';
+import '../../widgets/tap_tooltip.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import '../../config/app_colors.dart';
@@ -111,6 +114,14 @@ class _MultiPropertyMonitorScreenState extends State<MultiPropertyMonitorScreen>
         _error = e.toString();
         _loadingProperties = false;
       });
+    }
+  }
+
+  Future<void> _refreshAll() async {
+    if (_properties.isEmpty) {
+      await _loadProperties();
+    } else {
+      await _loadAllSites();
     }
   }
 
@@ -293,25 +304,18 @@ class _MultiPropertyMonitorScreenState extends State<MultiPropertyMonitorScreen>
           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
         ),
         actions: [
-          IconButton(
-            icon: _loading 
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    ),
-                  )
-                : const Icon(Icons.refresh),
-            onPressed: _loading ? null : _loadAllSites,
+          ScreenHelpAction(
+            title: 'Multi-Property Monitor',
+            message: HelpContent.screenMultiProperty,
+          ),
+          RefreshIconButton(
+            loading: _loading || _loadingProperties,
+            onPressed: _refreshAll,
           ),
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: () async {
-          await _loadProperties();
-        },
+        onRefresh: _refreshAll,
         child: CustomScrollView(
           slivers: [
             // Header Info

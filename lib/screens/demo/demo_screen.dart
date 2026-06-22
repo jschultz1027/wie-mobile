@@ -2,6 +2,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/app_menu_button.dart';
+import '../../widgets/refresh_icon_button.dart';
+import '../../config/help_content.dart';
+import '../../widgets/tap_tooltip.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import '../../config/app_colors.dart';
@@ -177,12 +180,13 @@ class _DemoScreenState extends State<DemoScreen> {
           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
         ),
         actions: [
-          IconButton(
-            icon: Icon(
-              _loading ? Icons.refresh : Icons.refresh,
-              color: Colors.white,
-            ),
-            onPressed: _loading ? null : _loadDemo,
+          ScreenHelpAction(
+            title: 'Try Demo',
+            message: HelpContent.screenTryDemo,
+          ),
+          RefreshIconButton(
+            loading: _loading,
+            onPressed: _loadDemo,
           ),
         ],
       ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/app_menu_button.dart';
+import '../../config/help_content.dart';
+import '../../widgets/tap_tooltip.dart';
 import '../../config/app_colors.dart';
 import '../../models/zone_attributes.dart';
 import '../../services/zone_manager_service.dart';
@@ -194,6 +196,10 @@ class _ZoneEditScreenState extends State<ZoneEditScreen> {
           style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
         ),
         actions: [
+          ScreenHelpAction(
+            title: 'Zone Editor',
+            message: HelpContent.screenZoneEdit,
+          ),
           if (widget.canEdit)
             TextButton(
               onPressed: _saving ? null : _save,

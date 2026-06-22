@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/app_menu_button.dart';
+import '../../config/help_content.dart';
+import '../../widgets/tap_tooltip.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../config/app_colors.dart';
 
@@ -40,6 +42,12 @@ class TermsAndPrivacyScreen extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          ScreenHelpAction(
+            title: 'Terms & Privacy',
+            message: HelpContent.screenTermsPrivacy,
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

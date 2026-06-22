@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/app_menu_button.dart';
+import '../../config/help_content.dart';
+import '../../widgets/tap_tooltip.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_colors.dart';
 import '../../models/shift_history.dart';
@@ -147,6 +149,12 @@ class _ShiftHistoryScreenState extends State<ShiftHistoryScreen> {
           'Shift History',
           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
         ),
+        actions: [
+          ScreenHelpAction(
+            title: 'Shift History',
+            message: HelpContent.screenShiftHistory,
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: _load,

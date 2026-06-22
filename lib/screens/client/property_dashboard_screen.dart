@@ -10,6 +10,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/app_menu_button.dart';
+import '../../config/help_content.dart';
+import '../../widgets/tap_tooltip.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import '../../config/app_colors.dart';
@@ -18,6 +20,7 @@ import '../../providers/auth_provider.dart';
 import '../../services/storage_service.dart';
 import '../../utils/app_notification.dart';
 import '../auth/login_screen.dart';
+import '../support/support_ticket_screen.dart';
 import 'client_portal_screen.dart';
 
 class PropertyDashboardScreen extends StatefulWidget {
@@ -275,6 +278,12 @@ class _PropertyDashboardScreenState extends State<PropertyDashboardScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          ScreenHelpAction(
+            title: 'Property Dashboard',
+            message: HelpContent.screenPropertyDashboard,
+          ),
+        ],
       ),
       body: _selectedSite == null ? _buildPropertySelectionView() : _buildPropertyDetailView(),
     );
@@ -931,7 +940,10 @@ class _PropertyDashboardScreenState extends State<PropertyDashboardScreen> {
         Expanded(
           child: OutlinedButton(
             onPressed: () {
-              AppNotification.info(context, 'Contact Support – use web or email');
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SupportTicketScreen()),
+              );
             },
             child: const Text('Contact Support'),
           ),

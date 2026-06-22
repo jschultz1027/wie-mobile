@@ -5,6 +5,8 @@ import '../../config/app_colors.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/app_menu_button.dart';
 import '../../widgets/app_drawer.dart';
+import '../../widgets/tap_tooltip.dart';
+import '../../config/help_content.dart';
 import '../../services/api_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -105,6 +107,12 @@ class _HomeScreenState extends State<HomeScreen> {
             backgroundColor: AppColors.slate900,
             elevation: 0,
             leading: const AppMenuButton(),
+            actions: [
+              ScreenHelpAction(
+                title: 'Home',
+                message: HelpContent.screenHome,
+              ),
+            ],
             flexibleSpace: FlexibleSpaceBar(
               background: Stack(
                 children: [

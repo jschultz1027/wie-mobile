@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_colors.dart';
+import '../../config/help_content.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/app_notification.dart';
+import '../../widgets/tap_tooltip.dart';
 import '../home/home_screen.dart';
 import 'register_screen.dart';
 import 'forgot_password_screen.dart';
@@ -63,14 +65,19 @@ class _LoginScreenState extends State<LoginScreen> {
         height: double.infinity,
         decoration: BoxDecoration(gradient: AppColors.primaryGradient),
         child: SafeArea(
-          child: SingleChildScrollView(
+          child: Stack(
+            children: [
+              SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Logo - App icon
                 Center(
-                  child: Container(
+                  child: TapTooltip(
+                    title: 'Winter Intelligence Engine',
+                    message: HelpContent.loginLogo,
+                    child: Container(
                     width: 90,
                     height: 90,
                     decoration: BoxDecoration(
@@ -88,10 +95,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
+                ),
                 SizedBox(height: 48),
                 
                 // Title - Outside card for better spacing
-                Text(
+                TapTooltip(
+                  title: 'Welcome Back',
+                  message: HelpContent.screenLogin,
+                  child: Text(
                   'Welcome Back',
                   style: TextStyle(
                     fontSize: 36,
@@ -100,6 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     letterSpacing: -0.5,
                   ),
                   textAlign: TextAlign.center,
+                ),
                 ),
                 SizedBox(height: 12),
                 Text(
@@ -119,17 +131,22 @@ class _LoginScreenState extends State<LoginScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // Email Label
-                      Text(
-                        'Email Address',
+                      HelpLabel(
+                        label: 'Email Address',
+                        help: HelpContent.loginEmail,
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
                           color: Colors.white,
                         ),
+                        iconColor: Color(0xFF93C5FD),
                       ),
                       SizedBox(height: 10),
-                      // Email Field - Bigger touch target
-                      TextFormField(
+                      TapTooltip(
+                        title: 'Email Address',
+                        message: HelpContent.loginEmail,
+                        triggerOnLongPressOnly: true,
+                        child: TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                         style: TextStyle(color: Colors.white, fontSize: 16),
@@ -171,21 +188,30 @@ class _LoginScreenState extends State<LoginScreen> {
                           return null;
                         },
                       ),
+                      ),
                       SizedBox(height: 24),
                       
                       // Password Label
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Password',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.white,
+                          Expanded(
+                            child: HelpLabel(
+                              label: 'Password',
+                              help: HelpContent.loginPassword,
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                              ),
+                              iconColor: Color(0xFF93C5FD),
                             ),
                           ),
-                          TextButton(
+                          TapTooltip(
+                            title: 'Forgot password?',
+                            message: HelpContent.loginForgotPassword,
+                            triggerOnLongPressOnly: true,
+                            child: TextButton(
                             onPressed: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
@@ -204,11 +230,15 @@ class _LoginScreenState extends State<LoginScreen> {
                               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                             ),
                           ),
+                          ),
                         ],
                       ),
                       SizedBox(height: 10),
-                      // Password Field - Bigger touch target
-                      TextFormField(
+                      TapTooltip(
+                        title: 'Password',
+                        message: HelpContent.loginPassword,
+                        triggerOnLongPressOnly: true,
+                        child: TextFormField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
                         style: TextStyle(color: Colors.white, fontSize: 16),
@@ -254,10 +284,15 @@ class _LoginScreenState extends State<LoginScreen> {
                           return null;
                         },
                       ),
+                      ),
                       SizedBox(height: 32),
                       
                       // Submit Button - Bigger and more prominent
-                      Consumer<AuthProvider>(
+                      TapTooltip(
+                        title: 'Sign In',
+                        message: HelpContent.loginSignIn,
+                        triggerOnLongPressOnly: true,
+                        child: Consumer<AuthProvider>(
                         builder: (context, authProvider, _) {
                           return Container(
                             decoration: BoxDecoration(
@@ -309,6 +344,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           );
                         },
                       ),
+                      ),
                     ],
                   ),
                 ),
@@ -316,7 +352,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 
                 // Register Link - Outside card
                 Center(
-                  child: TextButton(
+                  child: TapTooltip(
+                    title: 'Sign up',
+                    message: HelpContent.loginSignUp,
+                    triggerOnLongPressOnly: true,
+                    child: TextButton(
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
@@ -339,6 +379,16 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ],
             ),
+          ),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: ScreenHelpAction(
+                  title: 'Sign In',
+                  message: HelpContent.screenLogin,
+                ),
+              ),
+            ],
           ),
         ),
       ),

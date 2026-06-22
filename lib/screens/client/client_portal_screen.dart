@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/app_menu_button.dart';
+import '../../config/help_content.dart';
+import '../../widgets/tap_tooltip.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import '../../config/app_colors.dart';
@@ -343,6 +345,12 @@ class _ClientPortalScreenState extends State<ClientPortalScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          ScreenHelpAction(
+            title: 'Client Portal',
+            message: HelpContent.screenClientPortal,
+          ),
+        ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())

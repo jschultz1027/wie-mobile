@@ -8,6 +8,8 @@ import '../../models/weather_snapshot.dart';
 import '../../models/pipeline_prediction.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/app_menu_button.dart';
+import '../../config/help_content.dart';
+import '../../widgets/tap_tooltip.dart';
 import '../../config/app_colors.dart';
 import '../../config/app_config.dart';
 import '../../services/storage_service.dart';
@@ -797,6 +799,12 @@ class _CompletePipelineScreenState extends State<CompletePipelineScreen> {
           'Complete Pipeline Demo',
           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
         ),
+        actions: [
+          ScreenHelpAction(
+            title: 'Complete Pipeline',
+            message: HelpContent.screenCompletePipeline,
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

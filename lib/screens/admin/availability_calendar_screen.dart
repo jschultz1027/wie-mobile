@@ -2,6 +2,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/app_menu_button.dart';
+import '../../widgets/refresh_icon_button.dart';
+import '../../config/help_content.dart';
+import '../../widgets/tap_tooltip.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -94,12 +97,21 @@ class _AvailabilityCalendarScreenState extends State<AvailabilityCalendarScreen>
     }
   }
 
+  Future<void> _refreshCalendar() async {
+    if (_contractors.isEmpty) {
+      await _loadContractors();
+    } else {
+      await _loadAvailability();
+    }
+  }
+
   Future<void> _loadAvailability() async {
     print('=== _loadAvailability called ===');
     
     if (_selectedContractorIds.isEmpty) {
       setState(() {
         _events = {};
+        _loading = false;
       });
       return;
     }
@@ -669,15 +681,18 @@ class _AvailabilityCalendarScreenState extends State<AvailabilityCalendarScreen>
           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
         ),
         actions: [
+          ScreenHelpAction(
+            title: 'Availability Calendar',
+            message: HelpContent.screenAvailabilityCalendar,
+          ),
           IconButton(
             icon: Icon(Icons.filter_list, color: Colors.white),
             onPressed: _showContractorSelector,
             tooltip: 'Filter Contractors',
           ),
-          IconButton(
-            icon: Icon(Icons.refresh, color: Colors.white),
-            onPressed: _loading ? null : _loadAvailability,
-            tooltip: 'Refresh',
+          RefreshIconButton(
+            loading: _loading,
+            onPressed: _refreshCalendar,
           ),
         ],
       ),
