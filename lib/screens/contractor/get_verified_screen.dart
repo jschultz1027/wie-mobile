@@ -11,6 +11,7 @@ import '../../models/get_verified.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/storage_service.dart';
 import '../../services/get_verified_service.dart';
+import '../../utils/image_compression.dart';
 import '../../utils/app_notification.dart';
 import '../auth/login_screen.dart';
 
@@ -169,8 +170,11 @@ class _GetVerifiedScreenState extends State<GetVerifiedScreen> {
 
   Future<void> _pickImage(ValueChanged<File?> setFile) async {
     try {
-      final x = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
-      if (x != null) setState(() => setFile(File(x.path)));
+      final x = await _picker.pickImage(source: ImageSource.gallery);
+      if (x != null) {
+        final compressed = await ImageCompression.compressXFile(x);
+        setState(() => setFile(compressed));
+      }
     } catch (_) {}
   }
 

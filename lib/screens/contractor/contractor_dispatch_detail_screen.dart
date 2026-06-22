@@ -16,6 +16,7 @@ import '../../config/app_config.dart';
 import '../../models/contractor_assignment.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/storage_service.dart';
+import '../../utils/image_compression.dart';
 import '../../utils/app_notification.dart';
 import '../auth/login_screen.dart';
 
@@ -42,8 +43,8 @@ class _ContractorDispatchDetailScreenState extends State<ContractorDispatchDetai
   ContractorAssignment? _assignment;
   bool _loading = true;
   TargetZone? _selectedZone;
-  XFile? _beforePhoto;
-  XFile? _afterPhoto;
+  File? _beforePhoto;
+  File? _afterPhoto;
   bool _uploadingBefore = false;
   bool _uploadingAfter = false;
 
@@ -122,7 +123,10 @@ class _ContractorDispatchDetailScreenState extends State<ContractorDispatchDetai
         Uri.parse('${AppConfig.baseUrl}/api/v1/contractors/dispatches/${widget.assignmentId}/zones/${_selectedZone!.zoneId}/complete'),
       );
       request.headers['Authorization'] = 'Bearer $token';
-      request.files.add(await http.MultipartFile.fromPath('before_photo', _beforePhoto!.path));
+      request.files.add(await ImageCompression.multipartPhoto(
+        file: _beforePhoto!,
+        field: 'before_photo',
+      ));
 
       final streamed = await request.send();
       final response = await http.Response.fromStream(streamed);
@@ -171,7 +175,10 @@ class _ContractorDispatchDetailScreenState extends State<ContractorDispatchDetai
         Uri.parse('${AppConfig.baseUrl}/api/v1/contractors/dispatches/${widget.assignmentId}/zones/${_selectedZone!.zoneId}/complete'),
       );
       request.headers['Authorization'] = 'Bearer $token';
-      request.files.add(await http.MultipartFile.fromPath('after_photo', _afterPhoto!.path));
+      request.files.add(await ImageCompression.multipartPhoto(
+        file: _afterPhoto!,
+        field: 'after_photo',
+      ));
 
       final streamed = await request.send();
       final response = await http.Response.fromStream(streamed);
@@ -215,7 +222,10 @@ class _ContractorDispatchDetailScreenState extends State<ContractorDispatchDetai
   Future<void> _captureBeforePhoto() async {
     try {
       final photo = await _picker.pickImage(source: ImageSource.camera, preferredCameraDevice: CameraDevice.rear);
-      if (photo != null && mounted) setState(() => _beforePhoto = photo);
+      if (photo != null && mounted) {
+        final compressed = await ImageCompression.compressXFile(photo);
+        setState(() => _beforePhoto = compressed);
+      }
     } catch (e) {
       AppNotification.error(context, 'Camera error: $e');
     }
@@ -224,7 +234,10 @@ class _ContractorDispatchDetailScreenState extends State<ContractorDispatchDetai
   Future<void> _captureAfterPhoto() async {
     try {
       final photo = await _picker.pickImage(source: ImageSource.camera, preferredCameraDevice: CameraDevice.rear);
-      if (photo != null && mounted) setState(() => _afterPhoto = photo);
+      if (photo != null && mounted) {
+        final compressed = await ImageCompression.compressXFile(photo);
+        setState(() => _afterPhoto = compressed);
+      }
     } catch (e) {
       AppNotification.error(context, 'Camera error: $e');
     }
@@ -494,7 +507,7 @@ class _ContractorDispatchDetailScreenState extends State<ContractorDispatchDetai
                 else ...[
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: Image.file(File(_beforePhoto!.path), height: 150, width: double.infinity, fit: BoxFit.cover),
+                    child: Image.file(_beforePhoto!, height: 150, width: double.infinity, fit: BoxFit.cover),
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -550,7 +563,7 @@ class _ContractorDispatchDetailScreenState extends State<ContractorDispatchDetai
               else ...[
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.file(File(_afterPhoto!.path), height: 150, width: double.infinity, fit: BoxFit.cover),
+                  child: Image.file(_afterPhoto!, height: 150, width: double.infinity, fit: BoxFit.cover),
                 ),
                 const SizedBox(height: 8),
                 Row(

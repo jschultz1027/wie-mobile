@@ -344,7 +344,7 @@ class AppDrawer extends StatelessWidget {
                       icon: Icons.map,
                       title: 'Multi-Property Monitor',
                       subtitle: 'Monitor locations',
-                      help: HelpContent.multiProperty,
+                      help: HelpContent.multiPropertyMonitor,
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(

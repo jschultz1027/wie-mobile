@@ -4,6 +4,7 @@ import 'dart:io';
 import '../config/app_config.dart';
 import '../models/get_verified.dart';
 import '../services/storage_service.dart';
+import '../utils/image_compression.dart';
 
 /// Contractor verifications API. GET/POST /api/v1/contractors/verifications, upload document.
 class GetVerifiedService {
@@ -75,10 +76,20 @@ class GetVerifiedService {
     final token = StorageService().getToken();
     if (token == null || token.isEmpty) throw GetVerifiedException('Not authenticated');
 
+    final toUpload = await ImageCompression.compressPhotoFile(file);
+
     final uri = Uri.parse('$_base/api/v1/contractors/verifications/$verificationId/document');
     final request = http.MultipartRequest('POST', uri);
     request.headers['Authorization'] = 'Bearer $token';
-    request.files.add(await http.MultipartFile.fromPath('file', file.path, filename: file.path.split(RegExp(r'[/\\]')).last));
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'file',
+        toUpload.path,
+        filename: ImageCompression.isImagePath(toUpload.path)
+            ? 'document.jpg'
+            : toUpload.path.split(RegExp(r'[/\\]')).last,
+      ),
+    );
 
     final streamed = await request.send();
     final response = await http.Response.fromStream(streamed);

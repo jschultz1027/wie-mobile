@@ -62,6 +62,11 @@ dependencies:
   
   # Image/Video picker
   image_picker: ^1.0.7
+
+  # Photo compression before upload (~40KB target)
+  flutter_image_compress: ^2.4.0
+  path_provider: ^2.1.5
+  path: ^1.9.1
   
   # Video player with controls
   chewie: ^1.8.5
