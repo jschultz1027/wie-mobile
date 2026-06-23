@@ -25,6 +25,9 @@ class ClientPortalScreen extends StatefulWidget {
 }
 
 class _ClientPortalScreenState extends State<ClientPortalScreen> {
+  /// Client-facing zone detail: hide Engine A/B computed metrics (admin-only).
+  static const bool _showClientComputedEngines = false;
+
   final ZoneManagerService _zoneService = ZoneManagerService();
 
   List<_PropertyItem> _properties = [];
@@ -987,7 +990,8 @@ class _ClientPortalScreenState extends State<ClientPortalScreen> {
     }
     String surfaceLabel(String v) {
       final m = kSurfaceTypes.firstWhere((e) => e['value'] == v, orElse: () => {'label': v});
-      return m['label'] ?? v;
+      final label = m['label'] ?? v;
+      return label.replaceFirst(RegExp(r'\s*\([^)]*\)$'), '');
     }
     showModalBottomSheet(
       context: context,
@@ -1060,20 +1064,7 @@ class _ClientPortalScreenState extends State<ClientPortalScreen> {
                       const SizedBox(height: 4),
                       Text(zone.notes!, style: const TextStyle(fontSize: 14)),
                     ],
-                    const SizedBox(height: 16),
-                    _sectionTitle('Zone attributes (sliders)'),
-                    _attrRow('Stairs (A: 0.55, B: 0.25)', zone.stairs),
-                    _attrRow('Ramp (A: 0.45, B: 0.25)', zone.ramp),
-                    _attrRow('Curb step (A: 0.25)', zone.curbStep),
-                    _attrRow('Shade (A: 0.35, B: 0.15)', zone.shade),
-                    _attrRow('North-facing (A: 0.25)', zone.northFacing),
-                    _attrRow('Tree cover (A: 0.20)', zone.treeCover),
-                    _attrRow('Wind corridor (A: 0.15, B: 0.25)', zone.windCorridor),
-                    _attrRow('Vegetation edge (A: 0.20, B: 0.25)', zone.vegEdge),
-                    _attrRow('Covered (A: 0.20, B: 0.15)', zone.covered),
-                    _attrRow('Elevated (A: 0.30)', zone.elevated),
-                    _attrRow('Water accumulation (A: 0.65, B: 0.85)', zone.waterAccumulation),
-                    _attrRow('High foot traffic (A: 0.30, B: 0.35)', zone.highFootTraffic),
+                    if (_showClientComputedEngines) ...[
                     const SizedBox(height: 16),
                     _sectionTitle('Computed'),
                     Container(
@@ -1107,8 +1098,9 @@ class _ClientPortalScreenState extends State<ClientPortalScreen> {
                         ],
                       ),
                     ),
+                    ],
                     if (zone.isHighLiabilityZone == true) ...[
-                      const SizedBox(height: 8),
+                      SizedBox(height: _showClientComputedEngines ? 8 : 16),
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -1173,28 +1165,6 @@ class _ClientPortalScreenState extends State<ClientPortalScreen> {
               value,
               style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _attrRow(String label, double value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 2,
-            child: Text(
-              label,
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-            ),
-          ),
-          Text(
-            '${sliderPresetLabel(value)} (${value.toStringAsFixed(2)})',
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
           ),
         ],
       ),
