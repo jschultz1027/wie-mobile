@@ -8,6 +8,8 @@ import '../../widgets/app_drawer.dart';
 import '../../widgets/tap_tooltip.dart';
 import '../../config/help_content.dart';
 import '../../services/api_service.dart';
+import '../../navigation/home_screen_actions.dart';
+import '../client/client_portal_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,6 +24,9 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _error;
   int _currentSlide = 0;
   Timer? _slideTimer;
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey<ClientPortalContentState> _clientPortalKey =
+      GlobalKey<ClientPortalContentState>();
 
   final List<Map<String, String>> _slides = [
     {
@@ -44,14 +49,33 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadStatus();
+    HomeScreenActions.registerScrollToTop(_scrollToTop);
     _startSlideTimer();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = context.read<AuthProvider>().user;
+      if (user?.isClient != true) {
+        _loadStatus();
+      } else if (mounted) {
+        setState(() => _loading = false);
+      }
+    });
   }
 
   @override
   void dispose() {
+    HomeScreenActions.unregisterScrollToTop(_scrollToTop);
     _slideTimer?.cancel();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _scrollToTop() {
+    if (!_scrollController.hasClients) return;
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
   }
 
   void _startSlideTimer() {
@@ -70,10 +94,10 @@ class _HomeScreenState extends State<HomeScreen> {
         _loading = true;
         _error = null;
       });
-      
+
       final apiService = context.read<ApiService>();
       final data = await apiService.getStatus();
-      
+
       if (mounted) {
         setState(() {
           _status = data;
@@ -90,170 +114,191 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _refreshClientHome() async {
+    await _clientPortalKey.currentState?.reload();
+  }
+
+  SliverAppBar _buildHeroSliver({required bool isClient}) {
+    return SliverAppBar(
+      expandedHeight: 320,
+      pinned: true,
+      backgroundColor: AppColors.slate900,
+      elevation: 0,
+      leading: const AppMenuButton(),
+      actions: [
+        ScreenHelpAction(
+          title: 'Home',
+          message: isClient ? HelpContent.screenClientPortal : HelpContent.screenHome,
+        ),
+      ],
+      flexibleSpace: FlexibleSpaceBar(
+        background: Stack(
+          children: [
+            ...List.generate(_slides.length, (index) {
+              final slide = _slides[index];
+              return AnimatedOpacity(
+                duration: Duration(milliseconds: 500),
+                opacity: index == _currentSlide ? 1.0 : 0.0,
+                child: Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Image.network(
+                        slide['image'] ?? '',
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [AppColors.blue900, AppColors.blue600],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                            colors: [
+                              Colors.black.withValues(alpha: 0.7),
+                              Colors.black.withValues(alpha: 0.3),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (index == _currentSlide)
+                        SafeArea(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  slide['title'] ?? '',
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    height: 1.2,
+                                    shadows: [
+                                      Shadow(
+                                        blurRadius: 15,
+                                        color: Colors.black.withValues(alpha: 0.6),
+                                      ),
+                                    ],
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  slide['description'] ?? '',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.white.withValues(alpha: 0.95),
+                                    height: 1.4,
+                                    shadows: [
+                                      Shadow(
+                                        blurRadius: 10,
+                                        color: Colors.black.withValues(alpha: 0.5),
+                                      ),
+                                    ],
+                                  ),
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+            Positioned(
+              bottom: 10,
+              left: 0,
+              right: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  _slides.length,
+                  (index) => GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _currentSlide = index;
+                      });
+                    },
+                    child: AnimatedContainer(
+                      duration: Duration(milliseconds: 300),
+                      margin: EdgeInsets.symmetric(horizontal: 4),
+                      width: index == _currentSlide ? 32 : 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: index == _currentSlide
+                            ? Colors.white
+                            : Colors.white.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
     final user = authProvider.user;
+    final isClient = user?.isClient ?? false;
+
+    if (isClient) {
+      return Scaffold(
+        backgroundColor: Colors.grey.shade50,
+        drawer: user != null ? AppDrawer() : null,
+        body: RefreshIndicator(
+          onRefresh: _refreshClientHome,
+          child: CustomScrollView(
+            controller: _scrollController,
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              _buildHeroSliver(isClient: true),
+              SliverToBoxAdapter(
+                child: ClientPortalContent(
+                  key: _clientPortalKey,
+                  embedded: true,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: Colors.white,
       drawer: user != null ? AppDrawer() : null,
       body: CustomScrollView(
+        controller: _scrollController,
         slivers: [
-          // Full-Width Image Slider (matching web version)
-          SliverAppBar(
-            expandedHeight: 320,
-            pinned: true,
-            backgroundColor: AppColors.slate900,
-            elevation: 0,
-            leading: const AppMenuButton(),
-            actions: [
-              ScreenHelpAction(
-                title: 'Home',
-                message: HelpContent.screenHome,
-              ),
-            ],
-            flexibleSpace: FlexibleSpaceBar(
-              background: Stack(
-                children: [
-                  // Image slides with AnimatedSwitcher
-                  ...List.generate(_slides.length, (index) {
-                    final slide = _slides[index];
-                    return AnimatedOpacity(
-                      duration: Duration(milliseconds: 500),
-                      opacity: index == _currentSlide ? 1.0 : 0.0,
-                      child: Container(
-                        width: double.infinity,
-                        height: double.infinity,
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            // Background Image
-                            Image.network(
-                              slide['image'] ?? '',
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                // Fallback gradient if image fails to load
-                                return Container(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: [AppColors.blue900, AppColors.blue600],
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                            // Dark overlay gradient
-                            Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
-                                  colors: [
-                                    Colors.black.withValues(alpha: 0.7),
-                                    Colors.black.withValues(alpha: 0.3),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            // Content overlay
-                            if (index == _currentSlide)
-                              SafeArea(
-                                child: Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      // Title
-                                      Text(
-                                        slide['title'] ?? '',
-                                        style: TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                          height: 1.2,
-                                          shadows: [
-                                            Shadow(
-                                              blurRadius: 15,
-                                              color: Colors.black.withValues(alpha: 0.6),
-                                            ),
-                                          ],
-                                        ),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      SizedBox(height: 8),
-                                      // Description
-                                      Text(
-                                        slide['description'] ?? '',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.white.withValues(alpha: 0.95),
-                                          height: 1.4,
-                                          shadows: [
-                                            Shadow(
-                                              blurRadius: 10,
-                                              color: Colors.black.withValues(alpha: 0.5),
-                                            ),
-                                          ],
-                                        ),
-                                        maxLines: 3,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }),
-                  // Slide Indicators
-                  Positioned(
-                    bottom: 10,
-                    left: 0,
-                    right: 0,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(
-                        _slides.length,
-                        (index) => GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _currentSlide = index;
-                            });
-                          },
-                          child: AnimatedContainer(
-                            duration: Duration(milliseconds: 300),
-                            margin: EdgeInsets.symmetric(horizontal: 4),
-                            width: index == _currentSlide ? 32 : 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: index == _currentSlide
-                                  ? Colors.white
-                                  : Colors.white.withValues(alpha: 0.5),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Content
+          _buildHeroSliver(isClient: false),
           SliverToBoxAdapter(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Status Card - Simple and Clean
                 if (_status != null)
                   Container(
                     margin: EdgeInsets.all(20),
@@ -307,8 +352,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                   ),
-
-                // Loading State
                 if (_loading)
                   Container(
                     padding: EdgeInsets.all(48),
@@ -318,8 +361,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-
-                // Error State
                 if (_error != null)
                   Container(
                     margin: EdgeInsets.all(20),
@@ -370,8 +411,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                   ),
-
-                // Modules Status - Simplified
                 if (_status != null && _status!['modules'] != null) ...[
                   Padding(
                     padding: EdgeInsets.fromLTRB(20, 32, 20, 12),
@@ -384,7 +423,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-                  
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20),
                     child: Column(
@@ -398,8 +436,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ],
-
-                // System Info - Clean Stats
                 if (_status != null) ...[
                   Padding(
                     padding: EdgeInsets.fromLTRB(20, 32, 20, 12),
@@ -412,7 +448,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-                  
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20),
                     child: Row(
@@ -435,7 +470,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ],
-
                 SizedBox(height: 40),
               ],
             ),

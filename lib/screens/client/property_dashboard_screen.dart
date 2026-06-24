@@ -19,9 +19,9 @@ import '../../config/app_config.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/storage_service.dart';
 import '../../utils/app_notification.dart';
+import '../../navigation/home_screen_actions.dart';
 import '../auth/login_screen.dart';
 import '../support/support_ticket_screen.dart';
-import 'client_portal_screen.dart';
 
 class PropertyDashboardScreen extends StatefulWidget {
   const PropertyDashboardScreen({super.key});
@@ -896,22 +896,16 @@ class _PropertyDashboardScreenState extends State<PropertyDashboardScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Access comprehensive zone maps, service history, and detailed risk analysis in the full property portal.',
+              'Access comprehensive zone maps, service history, and detailed risk analysis on your home screen.',
               style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
             ),
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const ClientPortalScreen(),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.map),
-                label: const Text('View Property Portal'),
+                onPressed: () => HomeScreenActions.goHome(context),
+                icon: const Icon(Icons.home),
+                label: const Text('Go to Home'),
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.blue600,
                   padding: const EdgeInsets.symmetric(vertical: 14),

@@ -10,7 +10,6 @@ import '../screens/historical/historical_risk_screen.dart';
 import '../screens/client/payments_billing_screen.dart';
 import '../screens/client/service_reports_screen.dart';
 import '../screens/client/snow_removal_contract_screen.dart';
-import '../screens/client/client_portal_screen.dart';
 import '../screens/client/property_dashboard_screen.dart';
 import '../screens/pipeline/complete_pipeline_screen.dart';
 import '../screens/weather/multi_property_monitor_screen.dart';
@@ -29,6 +28,7 @@ import '../screens/admin/dispatch_queue_screen.dart';
 import '../screens/admin/contractor_management_screen.dart';
 import '../screens/legal/terms_and_privacy_screen.dart';
 import '../config/help_content.dart';
+import '../navigation/home_screen_actions.dart';
 import 'help_overlay.dart';
 import 'tap_tooltip.dart';
 import '../screens/support/support_ticket_screen.dart';
@@ -143,9 +143,7 @@ class AppDrawer extends StatelessWidget {
                     icon: Icons.home,
                     title: 'Home',
                     help: HelpContent.home,
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
+                    onTap: () => HomeScreenActions.goHome(context),
                   ),
 
                   // Divider
@@ -188,22 +186,6 @@ class AppDrawer extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (_) => const PropertyDashboardScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    _buildMenuItem(
-                      context,
-                      icon: Icons.map,
-                      title: 'Client Portal',
-                      subtitle: 'Property management & zones',
-                      help: HelpContent.clientPortal,
-                      onTap: () {
-                        Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const ClientPortalScreen(),
                           ),
                         );
                       },

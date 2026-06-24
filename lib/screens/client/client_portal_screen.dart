@@ -16,15 +16,19 @@ import '../../utils/app_notification.dart';
 import '../../widgets/property_map_with_zones.dart';
 import '../auth/login_screen.dart';
 
-/// Client Portal - property management dashboard. Matches web /client-portal.
-class ClientPortalScreen extends StatefulWidget {
-  const ClientPortalScreen({super.key});
+/// Client portal body — property zones, protection, alerts, and services.
+/// Use [embedded] on [HomeScreen] for clients; standalone via [ClientPortalScreen].
+class ClientPortalContent extends StatefulWidget {
+  const ClientPortalContent({super.key, this.embedded = false});
+
+  /// When true, renders without scaffold (for embedding under home carousel).
+  final bool embedded;
 
   @override
-  State<ClientPortalScreen> createState() => _ClientPortalScreenState();
+  State<ClientPortalContent> createState() => ClientPortalContentState();
 }
 
-class _ClientPortalScreenState extends State<ClientPortalScreen> {
+class ClientPortalContentState extends State<ClientPortalContent> {
   /// Client-facing zone detail: hide Engine A/B computed metrics (admin-only).
   static const bool _showClientComputedEngines = false;
 
@@ -51,6 +55,9 @@ class _ClientPortalScreenState extends State<ClientPortalScreen> {
     super.initState();
     _load();
   }
+
+  /// Pull-to-refresh entry point when embedded in [HomeScreen].
+  Future<void> reload() => _load();
 
   String _formatHoursSince(double hours) {
     if (hours < 1) return '<1h';
@@ -319,10 +326,68 @@ class _ClientPortalScreenState extends State<ClientPortalScreen> {
     );
   }
 
+  Widget _buildPortalBody() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (!widget.embedded) ...[
+          Text(
+            'View zones, monitor protection, and track services',
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey.shade700,
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+        if (_error != null) ...[
+          _buildErrorBanner(),
+          const SizedBox(height: 12),
+        ],
+        _buildPropertySelector(),
+        const SizedBox(height: 16),
+        if (_selectedProperty == null)
+          _buildPlaceholder()
+        else ...[
+          _buildStatusBanner(),
+          const SizedBox(height: 16),
+          _buildMapSection(),
+          const SizedBox(height: 16),
+          _buildZonesTableSection(),
+          const SizedBox(height: 16),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth < 360) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildAlertsSection(),
+                    const SizedBox(height: 12),
+                    _buildServicesSection(),
+                  ],
+                );
+              }
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: _buildAlertsSection()),
+                  const SizedBox(width: 12),
+                  Expanded(child: _buildServicesSection()),
+                ],
+              );
+            },
+          ),
+        ],
+        if (widget.embedded) const SizedBox(height: 24),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     if (auth.user != null && !auth.user!.isClient) {
+      if (widget.embedded) return const SizedBox.shrink();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) Navigator.of(context).pop();
       });
@@ -330,6 +395,25 @@ class _ClientPortalScreenState extends State<ClientPortalScreen> {
         drawer: const AppDrawer(),
         appBar: AppBar(title: const Text('Client Portal')),
         body: const Center(child: Text('Client only')),
+      );
+    }
+
+    if (widget.embedded) {
+      if (_loading) {
+        return ColoredBox(
+          color: Colors.grey.shade50,
+          child: const Padding(
+            padding: EdgeInsets.symmetric(vertical: 48),
+            child: Center(child: CircularProgressIndicator()),
+          ),
+        );
+      }
+      return ColoredBox(
+        color: Colors.grey.shade50,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: _buildPortalBody(),
+        ),
       );
     }
 
@@ -361,57 +445,7 @@ class _ClientPortalScreenState extends State<ClientPortalScreen> {
               onRefresh: _load,
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'View zones, monitor protection, and track services',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey.shade700,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    if (_error != null) ...[
-                      _buildErrorBanner(),
-                      const SizedBox(height: 12),
-                    ],
-                    _buildPropertySelector(),
-                    const SizedBox(height: 16),
-                    if (_selectedProperty == null)
-                      _buildPlaceholder()
-                    else ...[
-                      _buildStatusBanner(),
-                      const SizedBox(height: 16),
-                      _buildMapSection(),
-                      const SizedBox(height: 16),
-                      _buildZonesTableSection(),
-                      const SizedBox(height: 16),
-                      LayoutBuilder(
-                        builder: (context, constraints) {
-                          if (constraints.maxWidth < 360) {
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                _buildAlertsSection(),
-                                const SizedBox(height: 12),
-                                _buildServicesSection(),
-                              ],
-                            );
-                          }
-                          return Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(child: _buildAlertsSection()),
-                              const SizedBox(width: 12),
-                              Expanded(child: _buildServicesSection()),
-                            ],
-                          );
-                        },
-                      ),
-                    ],
-                  ],
-                ),
+                child: _buildPortalBody(),
               ),
             ),
     );
@@ -1422,6 +1456,14 @@ class _ClientPortalScreenState extends State<ClientPortalScreen> {
       return s;
     }
   }
+}
+
+/// Standalone client portal route (legacy). Clients should use [HomeScreen] instead.
+class ClientPortalScreen extends StatelessWidget {
+  const ClientPortalScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) => const ClientPortalContent();
 }
 
 class _ZoneRowData {
