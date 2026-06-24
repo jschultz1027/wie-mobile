@@ -294,12 +294,13 @@ class ClientPortalContentState extends State<ClientPortalContent> {
   Future<void> _handleSessionExpired() async {
     await StorageService().clearAll();
     if (!mounted) return;
+    final rootNav = Navigator.of(context, rootNavigator: true);
     Provider.of<AuthProvider>(context, listen: false).logout();
-    if (!mounted) return;
+
     showDialog(
-      context: context,
+      context: rootNav.context,
       barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Row(
           children: [
             Icon(Icons.timer_off, color: AppColors.error),
@@ -313,8 +314,9 @@ class ClientPortalContentState extends State<ClientPortalContent> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(ctx).pop();
-              Navigator.of(context).pushAndRemoveUntil(
+              final nav = Navigator.of(dialogContext, rootNavigator: true);
+              nav.pop();
+              nav.pushAndRemoveUntil(
                 MaterialPageRoute(builder: (_) => const LoginScreen()),
                 (route) => false,
               );

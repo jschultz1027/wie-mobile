@@ -249,6 +249,73 @@ class _ContractorAvailabilityScreenState extends State<ContractorAvailabilityScr
     }
   }
 
+  Widget _buildTimeField({
+    required String label,
+    required TimeOfDay? time,
+    required VoidCallback onTap,
+  }) {
+    final timeLabel = time != null
+        ? '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}'
+        : 'Select';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey.shade700,
+          ),
+        ),
+        const SizedBox(height: 6),
+        OutlinedButton(
+          onPressed: onTap,
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+            alignment: Alignment.center,
+          ),
+          child: Text(
+            timeLabel,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStartEndTimeRow({
+    required TimeOfDay? startTime,
+    required TimeOfDay? endTime,
+    required Future<void> Function() onPickStart,
+    required Future<void> Function() onPickEnd,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: _buildTimeField(
+            label: 'Start',
+            time: startTime,
+            onTap: onPickStart,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildTimeField(
+            label: 'End',
+            time: endTime,
+            onTap: onPickEnd,
+          ),
+        ),
+      ],
+    );
+  }
+
   void _showCreateBlockModal(DateTime date) {
     String selectedStatus = 'unavailable';
     bool isPartialDay = false;
@@ -333,52 +400,28 @@ class _ContractorAvailabilityScreenState extends State<ContractorAvailabilityScr
                 },
               ),
               if (isPartialDay) ...[
-                SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ListTile(
-                        title: Text('Start Time'),
-                        trailing: TextButton(
-                          onPressed: () async {
-                            final time = await showTimePicker(
-                              context: context,
-                              initialTime: startTime ?? TimeOfDay.now(),
-                            );
-                            if (time != null) {
-                              setModalState(() => startTime = time);
-                            }
-                          },
-                          child: Text(
-                            startTime != null
-                                ? '${startTime!.hour.toString().padLeft(2, '0')}:${startTime!.minute.toString().padLeft(2, '0')}'
-                                : 'Select',
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: ListTile(
-                        title: Text('End Time'),
-                        trailing: TextButton(
-                          onPressed: () async {
-                            final time = await showTimePicker(
-                              context: context,
-                              initialTime: endTime ?? TimeOfDay.now(),
-                            );
-                            if (time != null) {
-                              setModalState(() => endTime = time);
-                            }
-                          },
-                          child: Text(
-                            endTime != null
-                                ? '${endTime!.hour.toString().padLeft(2, '0')}:${endTime!.minute.toString().padLeft(2, '0')}'
-                                : 'Select',
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                const SizedBox(height: 8),
+                _buildStartEndTimeRow(
+                  startTime: startTime,
+                  endTime: endTime,
+                  onPickStart: () async {
+                    final time = await showTimePicker(
+                      context: context,
+                      initialTime: startTime ?? TimeOfDay.now(),
+                    );
+                    if (time != null) {
+                      setModalState(() => startTime = time);
+                    }
+                  },
+                  onPickEnd: () async {
+                    final time = await showTimePicker(
+                      context: context,
+                      initialTime: endTime ?? TimeOfDay.now(),
+                    );
+                    if (time != null) {
+                      setModalState(() => endTime = time);
+                    }
+                  },
                 ),
               ],
               SizedBox(height: 16),
@@ -612,51 +655,28 @@ class _ContractorAvailabilityScreenState extends State<ContractorAvailabilityScr
                   },
                 ),
                 if (isPartialDay) ...[
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ListTile(
-                          title: Text('Start'),
-                          trailing: TextButton(
-                            onPressed: () async {
-                              final time = await showTimePicker(
-                                context: context,
-                                initialTime: startTime ?? TimeOfDay.now(),
-                              );
-                              if (time != null) {
-                                setDialogState(() => startTime = time);
-                              }
-                            },
-                            child: Text(
-                              startTime != null
-                                  ? '${startTime!.hour.toString().padLeft(2, '0')}:${startTime!.minute.toString().padLeft(2, '0')}'
-                                  : 'Select',
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: ListTile(
-                          title: Text('End'),
-                          trailing: TextButton(
-                            onPressed: () async {
-                              final time = await showTimePicker(
-                                context: context,
-                                initialTime: endTime ?? TimeOfDay.now(),
-                              );
-                              if (time != null) {
-                                setDialogState(() => endTime = time);
-                              }
-                            },
-                            child: Text(
-                              endTime != null
-                                  ? '${endTime!.hour.toString().padLeft(2, '0')}:${endTime!.minute.toString().padLeft(2, '0')}'
-                                  : 'Select',
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                  const SizedBox(height: 8),
+                  _buildStartEndTimeRow(
+                    startTime: startTime,
+                    endTime: endTime,
+                    onPickStart: () async {
+                      final time = await showTimePicker(
+                        context: context,
+                        initialTime: startTime ?? TimeOfDay.now(),
+                      );
+                      if (time != null) {
+                        setDialogState(() => startTime = time);
+                      }
+                    },
+                    onPickEnd: () async {
+                      final time = await showTimePicker(
+                        context: context,
+                        initialTime: endTime ?? TimeOfDay.now(),
+                      );
+                      if (time != null) {
+                        setDialogState(() => endTime = time);
+                      }
+                    },
                   ),
                 ],
                 SizedBox(height: 8),
