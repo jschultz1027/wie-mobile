@@ -608,34 +608,9 @@ class ClientPortalContentState extends State<ClientPortalContent> {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: border, width: 2),
           ),
-          child: Row(
-            children: [
-              Icon(
-                isProtected ? Icons.shield : Icons.warning_amber_rounded,
-                size: 36,
-                color: fg,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _propertyStatus.replaceAll('_', ' '),
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: fgDark,
-                      ),
-                    ),
-                    Text(
-                      'Time since last salt: ${_formatHoursSince(_hoursSinceSalt)}',
-                      style: TextStyle(fontSize: 13, color: fg),
-                    ),
-                  ],
-                ),
-              ),
-              Column(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final protectionColumn = Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
@@ -653,8 +628,65 @@ class ClientPortalContentState extends State<ClientPortalContent> {
                     ),
                   ),
                 ],
-              ),
-            ],
+              );
+              final statusColumn = Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _propertyStatus.replaceAll('_', ' '),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: fgDark,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      'Time since last salt: ${_formatHoursSince(_hoursSinceSalt)}',
+                      style: TextStyle(fontSize: 13, color: fg),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              );
+              if (constraints.maxWidth < 340) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          isProtected ? Icons.shield : Icons.warning_amber_rounded,
+                          size: 36,
+                          color: fg,
+                        ),
+                        const SizedBox(width: 12),
+                        statusColumn,
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Align(alignment: Alignment.centerLeft, child: protectionColumn),
+                  ],
+                );
+              }
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    isProtected ? Icons.shield : Icons.warning_amber_rounded,
+                    size: 36,
+                    color: fg,
+                  ),
+                  const SizedBox(width: 12),
+                  statusColumn,
+                  protectionColumn,
+                ],
+              );
+            },
           ),
         ),
         if (_loadingPropertyDetails)
@@ -694,6 +726,7 @@ class ClientPortalContentState extends State<ClientPortalContent> {
           Padding(
             padding: const EdgeInsets.all(12),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Icon(Icons.map, color: AppColors.blue600),
                 const SizedBox(width: 8),
@@ -704,23 +737,32 @@ class ClientPortalContentState extends State<ClientPortalContent> {
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                const SizedBox(width: 8),
                 if (_isLocked)
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.lock, size: 18, color: Colors.orange.shade700),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Locked by Admin',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.orange.shade700,
-                          fontWeight: FontWeight.w500,
+                  Flexible(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.lock, size: 18, color: Colors.orange.shade700),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            'Locked by Admin',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.orange.shade700,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   )
                 else
                   Text(
@@ -810,19 +852,23 @@ class ClientPortalContentState extends State<ClientPortalContent> {
         children: [
           Padding(
             padding: const EdgeInsets.all(12),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.grid_view, color: AppColors.blue600),
-                const SizedBox(width: 8),
-                Text(
-                  'Zones',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey.shade800,
-                  ),
+                Row(
+                  children: [
+                    const Icon(Icons.grid_view, color: AppColors.blue600),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Zones',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(height: 4),
                 Text(
                   '${_zoneRows.length} zone${_zoneRows.length == 1 ? '' : 's'} configured',
                   style: TextStyle(
@@ -913,23 +959,27 @@ class ClientPortalContentState extends State<ClientPortalContent> {
                     fontSize: 14,
                   ),
                   overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
+                  maxLines: 2,
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.blue600.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  row.zoneType.replaceAll('_', ' '),
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
+              const SizedBox(width: 8),
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.blue600.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(6),
                   ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
+                  child: Text(
+                    row.zoneType.replaceAll('_', ' '),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ),
               if (zoneAttrs != null) ...[

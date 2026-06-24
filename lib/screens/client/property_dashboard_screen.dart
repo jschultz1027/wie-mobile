@@ -387,16 +387,21 @@ class _PropertyDashboardScreenState extends State<PropertyDashboardScreen> {
                     ),
                   ),
                   if (data != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: statusColor),
-                      ),
-                      child: Text(
-                        statusLabel,
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: statusColor),
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: statusColor.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: statusColor),
+                        ),
+                        child: Text(
+                          statusLabel,
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: statusColor),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     )
                   else
@@ -409,17 +414,15 @@ class _PropertyDashboardScreenState extends State<PropertyDashboardScreen> {
               ),
               const SizedBox(height: 12),
               if (data != null)
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     _summaryChip('Risk', '${data.overallRisk.round()}', _riskColor(data.overallRisk)),
-                    const SizedBox(width: 8),
                     _summaryChip('Peak 24h', '${data.highest24h.round()}', _riskColor(data.highest24h)),
-                    const SizedBox(width: 8),
                     _summaryChip('Peak 48h', '${data.highest48h.round()}', _riskColor(data.highest48h)),
-                    const SizedBox(width: 8),
                     _summaryChip('7d', '${data.highest7days.round()}', _riskColor(data.highest7days)),
-                    const Spacer(),
-                    Icon(Icons.chevron_right, color: Colors.grey.shade500),
                   ],
                 )
               else
@@ -432,15 +435,16 @@ class _PropertyDashboardScreenState extends State<PropertyDashboardScreen> {
                 ),
               if (data != null) ...[
                 const SizedBox(height: 8),
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Icon(Icons.shield, size: 14, color: _protectionRemainingColor(data.protectionRemainingHours.toDouble())),
-                    const SizedBox(width: 4),
                     Text(
                       _protectionLabel(data.protectionStatus),
                       style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
                     ),
-                    const SizedBox(width: 8),
                     Text(
                       '~${data.protectionRemainingHours}h left',
                       style: TextStyle(fontSize: 12, color: _protectionRemainingColor(data.protectionRemainingHours.toDouble())),
@@ -559,6 +563,8 @@ class _PropertyDashboardScreenState extends State<PropertyDashboardScreen> {
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
                         ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       if (site.address.isNotEmpty)
                         Text(
@@ -571,23 +577,29 @@ class _PropertyDashboardScreenState extends State<PropertyDashboardScreen> {
                   ),
                 ),
                 if (_riskData != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: statusColor),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(statusIcon, style: const TextStyle(fontSize: 16)),
-                        const SizedBox(width: 6),
-                        Text(
-                          statusLabel,
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: statusColor),
-                        ),
-                      ],
+                  Flexible(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: statusColor.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: statusColor),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(statusIcon, style: const TextStyle(fontSize: 16)),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              statusLabel,
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: statusColor),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
               ],
@@ -685,13 +697,15 @@ class _PropertyDashboardScreenState extends State<PropertyDashboardScreen> {
     final border = _riskBorderColor(d.overallRisk);
     final textColor = _riskColor(d.overallRisk);
     return Container(
-      padding: const EdgeInsets.all(24),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: border, width: 4),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
             site.name,
@@ -701,46 +715,69 @@ class _PropertyDashboardScreenState extends State<PropertyDashboardScreen> {
               color: Colors.grey.shade600,
               letterSpacing: 1,
             ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 12),
-          Text(
-            '${d.overallRisk.round()}',
-            style: TextStyle(fontSize: 56, fontWeight: FontWeight.bold, color: textColor),
-          ),
-          Text(
-            '/ 100',
-            style: TextStyle(fontSize: 24, color: Colors.grey.shade500),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '${d.overallRisk.round()}',
+                style: TextStyle(fontSize: 56, fontWeight: FontWeight.bold, color: textColor, height: 1),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8, left: 4),
+                child: Text(
+                  '/ 100',
+                  style: TextStyle(fontSize: 22, color: Colors.grey.shade500),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 4),
           Text(
             _riskLabel(d.overallRisk),
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
+            textAlign: TextAlign.center,
           ),
-          const Divider(height: 24),
+          const Divider(height: 28),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              Column(
-                children: [
-                  Icon(Icons.shield, size: 28, color: _protectionRemainingColor(d.protectionRemainingHours.toDouble())),
-                  const SizedBox(height: 4),
-                  Text('Protection', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
-                  Text(
-                    _protectionLabel(d.protectionStatus),
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: _protectionRemainingColor(d.protectionRemainingHours.toDouble())),
-                  ),
-                ],
+              Expanded(
+                child: Column(
+                  children: [
+                    Icon(Icons.shield, size: 28, color: _protectionRemainingColor(d.protectionRemainingHours.toDouble())),
+                    const SizedBox(height: 4),
+                    Text('Protection', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                    const SizedBox(height: 2),
+                    Text(
+                      _protectionLabel(d.protectionStatus),
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: _protectionRemainingColor(d.protectionRemainingHours.toDouble())),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
-              Column(
-                children: [
-                  Icon(Icons.schedule, size: 28, color: _protectionRemainingColor(d.protectionRemainingHours.toDouble())),
-                  const SizedBox(height: 4),
-                  Text('Remaining', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
-                  Text(
-                    d.protectionRemainingHours > 0 ? '~${d.protectionRemainingHours}h' : 'None',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: _protectionRemainingColor(d.protectionRemainingHours.toDouble())),
-                  ),
-                ],
+              Container(width: 1, height: 56, color: border.withOpacity(0.6)),
+              Expanded(
+                child: Column(
+                  children: [
+                    Icon(Icons.schedule, size: 28, color: _protectionRemainingColor(d.protectionRemainingHours.toDouble())),
+                    const SizedBox(height: 4),
+                    Text('Remaining', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                    const SizedBox(height: 2),
+                    Text(
+                      d.protectionRemainingHours > 0 ? '~${d.protectionRemainingHours}h' : 'None',
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: _protectionRemainingColor(d.protectionRemainingHours.toDouble())),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -748,6 +785,7 @@ class _PropertyDashboardScreenState extends State<PropertyDashboardScreen> {
           Text(
             'Monitoring: ${d.monitoringFrequency}',
             style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -764,19 +802,36 @@ class _PropertyDashboardScreenState extends State<PropertyDashboardScreen> {
       _MetricItem('Protection', Icons.shield, _protectionLabel(d.protectionStatus), null),
       _MetricItem('Trend', _trendIcon(d.trend), _trendLabel(d.trend), null),
     ];
+
+    const gap = 8.0;
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        final crossCount = constraints.maxWidth > 400 ? 3 : 2;
-        return Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: List.generate(metrics.length, (i) {
-            final w = (constraints.maxWidth - 8 * (crossCount - 1) - 32) / crossCount;
-            return SizedBox(
-              width: w.clamp(120.0, double.infinity),
-              child: _buildMetricCard(metrics[i]),
-            );
-          }),
+        // 2×3 on phones, 3×2 on wider screens — equal width and height per row
+        final crossCount = constraints.maxWidth >= 600 ? 3 : 2;
+        final rowCount = (metrics.length / crossCount).ceil();
+
+        return Column(
+          children: [
+            for (var row = 0; row < rowCount; row++) ...[
+              if (row > 0) const SizedBox(height: gap),
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (var col = 0; col < crossCount; col++) ...[
+                      if (col > 0) const SizedBox(width: gap),
+                      Expanded(
+                        child: _buildMetricCard(
+                          metrics[row * crossCount + col],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ],
         );
       },
     );
@@ -785,34 +840,38 @@ class _PropertyDashboardScreenState extends State<PropertyDashboardScreen> {
   Widget _buildMetricCard(_MetricItem m) {
     return Card(
       elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Row(
-              children: [
-                Icon(m.icon, size: 18, color: AppColors.blue600),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    m.label,
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey.shade700),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
+            Icon(m.icon, size: 22, color: AppColors.blue600),
+            const SizedBox(height: 8),
+            Text(
+              m.label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade700,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             Text(
               m.value,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: m.label == 'Trend' ? 12 : 17,
                 fontWeight: FontWeight.bold,
                 color: m.valueColor ?? Colors.grey.shade800,
+                height: 1.2,
               ),
-              maxLines: 2,
+              textAlign: TextAlign.center,
+              maxLines: 3,
               overflow: TextOverflow.ellipsis,
             ),
           ],
@@ -919,30 +978,58 @@ class _PropertyDashboardScreenState extends State<PropertyDashboardScreen> {
   }
 
   Widget _buildClientActions() {
-    return Row(
-      children: [
-        Expanded(
-          child: FilledButton(
-            onPressed: () {
-              AppNotification.info(context, 'View Safety Report – open in web for full report');
-            },
-            style: FilledButton.styleFrom(backgroundColor: AppColors.blue600),
-            child: const Text('View Safety Report'),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: OutlinedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const SupportTicketScreen()),
-              );
-            },
-            child: const Text('Contact Support'),
-          ),
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 360) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              FilledButton(
+                onPressed: () {
+                  AppNotification.info(context, 'View Safety Report – open in web for full report');
+                },
+                style: FilledButton.styleFrom(backgroundColor: AppColors.blue600),
+                child: const Text('View Safety Report'),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SupportTicketScreen()),
+                  );
+                },
+                child: const Text('Contact Support'),
+              ),
+            ],
+          );
+        }
+        return Row(
+          children: [
+            Expanded(
+              child: FilledButton(
+                onPressed: () {
+                  AppNotification.info(context, 'View Safety Report – open in web for full report');
+                },
+                style: FilledButton.styleFrom(backgroundColor: AppColors.blue600),
+                child: const Text('View Safety Report'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SupportTicketScreen()),
+                  );
+                },
+                child: const Text('Contact Support'),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

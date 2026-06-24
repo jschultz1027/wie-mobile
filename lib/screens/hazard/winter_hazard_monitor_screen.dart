@@ -548,6 +548,33 @@ class _WinterHazardMonitorScreenState extends State<WinterHazardMonitorScreen> {
     );
   }
 
+  /// Title + trailing badge on one row; title ellipsizes before overlapping the badge.
+  Widget _buildSectionHeader({
+    required String title,
+    required Widget badge,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: AppColors.slate900,
+              height: 1.25,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        const SizedBox(width: 12),
+        badge,
+      ],
+    );
+  }
+
   Widget _buildRiskOverviewCard() {
     return Container(
       decoration: BoxDecoration(
@@ -564,35 +591,31 @@ class _WinterHazardMonitorScreenState extends State<WinterHazardMonitorScreen> {
       ),
       padding: EdgeInsets.all(20),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Overall Risk Assessment',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.slate900),
-              ),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: _getRiskBandBgColor(_hazardData!.hazardRiskBand),
-                  border: Border.all(color: _getRiskBandColor(_hazardData!.hazardRiskBand), width: 2),
-                  borderRadius: BorderRadius.circular(20),
+          _buildSectionHeader(
+            title: 'Overall Risk Assessment',
+            badge: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: _getRiskBandBgColor(_hazardData!.hazardRiskBand),
+                border: Border.all(
+                  color: _getRiskBandColor(_hazardData!.hazardRiskBand),
+                  width: 2,
                 ),
-                child: Text(
-                  _hazardData!.hazardRiskBand,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: _getRiskBandColor(_hazardData!.hazardRiskBand),
-                  ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                _hazardData!.hazardRiskBand,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: _getRiskBandColor(_hazardData!.hazardRiskBand),
                 ),
               ),
-            ],
+            ),
           ),
-          SizedBox(height: 20),
-
+          const SizedBox(height: 20),
           Row(
             children: [
               Expanded(
@@ -615,6 +638,7 @@ class _WinterHazardMonitorScreenState extends State<WinterHazardMonitorScreen> {
                           fontSize: 40,
                           fontWeight: FontWeight.bold,
                           color: _getRiskBandColor(_hazardData!.hazardRiskBand),
+                          height: 1,
                         ),
                       ),
                       Text(
@@ -642,8 +666,10 @@ class _WinterHazardMonitorScreenState extends State<WinterHazardMonitorScreen> {
                       SizedBox(height: 8),
                       Text(
                         _formatTimestamp(_hazardData!.timestamp),
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.slate900),
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.slate900),
                         textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       if (_lastUpdated != null) ...[
                         SizedBox(height: 4),
@@ -658,11 +684,9 @@ class _WinterHazardMonitorScreenState extends State<WinterHazardMonitorScreen> {
               ),
             ],
           ),
-
           SizedBox(height: 16),
           Divider(color: Colors.grey.shade200),
           SizedBox(height: 12),
-
           Text(
             'Property ID: ${_hazardData!.propertyId}',
             style: TextStyle(fontSize: 12, color: AppColors.textMuted),
@@ -672,6 +696,8 @@ class _WinterHazardMonitorScreenState extends State<WinterHazardMonitorScreen> {
             Text(
               'Location: ${_selectedSite!.name}',
               style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ],
@@ -698,117 +724,144 @@ class _WinterHazardMonitorScreenState extends State<WinterHazardMonitorScreen> {
       ),
       padding: EdgeInsets.all(20),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Temperature Analysis',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.slate900),
+          _buildSectionHeader(
+            title: 'Temperature Analysis',
+            badge: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade100,
+                borderRadius: BorderRadius.circular(12),
               ),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade100,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  'Engine A V2',
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.blue.shade800),
+              child: Text(
+                'Engine A V2',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue.shade800,
                 ),
               ),
-            ],
+            ),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 20),
 
-          Row(
-            children: [
-              Expanded(
-                child: Container(
+          LayoutBuilder(
+            builder: (context, constraints) {
+              Widget tempBox({
+                required String label,
+                required String value,
+                required String sub,
+                required Color bg,
+                Color? border,
+                Color? labelColor,
+                Color? valueColor,
+                FontWeight labelWeight = FontWeight.normal,
+              }) {
+                return Container(
+                  width: constraints.maxWidth < 360 ? double.infinity : null,
                   padding: EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
+                    color: bg,
+                    border: border != null ? Border.all(color: border, width: 2) : null,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
                     children: [
-                      Text('Air Temp', style: TextStyle(fontSize: 10, color: AppColors.textMuted)),
+                      Text(
+                        label,
+                        style: TextStyle(fontSize: 10, color: labelColor ?? AppColors.textMuted, fontWeight: labelWeight),
+                        textAlign: TextAlign.center,
+                      ),
                       SizedBox(height: 4),
                       Text(
-                        '${_hazardData!.airTemperature!.toStringAsFixed(1)}°C',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.slate900),
+                        value,
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: valueColor ?? AppColors.slate900),
+                        textAlign: TextAlign.center,
                       ),
-                      Text('Measured', style: TextStyle(fontSize: 9, color: AppColors.textMuted)),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(width: 8),
-              Expanded(
-                child: Container(
-                  padding: EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    border: Border.all(color: Colors.blue.shade300, width: 2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    children: [
-                      Text('Surface', style: TextStyle(fontSize: 10, color: Colors.blue.shade700, fontWeight: FontWeight.w600)),
-                      SizedBox(height: 4),
                       Text(
-                        '${_hazardData!.surfaceTemperature!.toStringAsFixed(1)}°C',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue.shade700),
+                        sub,
+                        style: TextStyle(fontSize: 9, color: labelColor ?? AppColors.textMuted),
+                        textAlign: TextAlign.center,
                       ),
-                      Text('Est. V2', style: TextStyle(fontSize: 9, color: Colors.blue.shade600)),
                     ],
                   ),
+                );
+              }
+
+              final boxes = [
+                Expanded(
+                  child: tempBox(
+                    label: 'Air Temp',
+                    value: '${_hazardData!.airTemperature!.toStringAsFixed(1)}°C',
+                    sub: 'Measured',
+                    bg: Colors.grey.shade50,
+                  ),
                 ),
-              ),
-              SizedBox(width: 8),
-              Expanded(
-                child: Container(
-                  padding: EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: isCooling ? Colors.orange.shade50 : Colors.green.shade50,
-                    border: Border.all(
-                      color: isCooling ? Colors.orange.shade300 : Colors.green.shade300,
-                      width: isCooling ? 2 : 1,
+                SizedBox(width: 8),
+                Expanded(
+                  child: tempBox(
+                    label: 'Surface',
+                    value: '${_hazardData!.surfaceTemperature!.toStringAsFixed(1)}°C',
+                    sub: 'Est. V2',
+                    bg: Colors.blue.shade50,
+                    border: Colors.blue.shade300,
+                    labelColor: Colors.blue.shade700,
+                    valueColor: Colors.blue.shade700,
+                    labelWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(width: 8),
+                Expanded(
+                  child: tempBox(
+                    label: isCooling ? 'Cooling' : 'Effect',
+                    value: '${coolingDelta > 0 ? '-' : '+'}${coolingDelta.abs().toStringAsFixed(1)}°C',
+                    sub: 'Surface',
+                    bg: isCooling ? Colors.orange.shade50 : Colors.green.shade50,
+                    border: isCooling ? Colors.orange.shade300 : Colors.green.shade300,
+                    labelColor: isCooling ? Colors.orange.shade700 : Colors.green.shade700,
+                    valueColor: isCooling ? Colors.orange.shade700 : Colors.green.shade700,
+                    labelWeight: isCooling ? FontWeight.w600 : FontWeight.normal,
+                  ),
+                ),
+              ];
+
+              if (constraints.maxWidth < 360) {
+                return Column(
+                  children: [
+                    tempBox(
+                      label: 'Air Temp',
+                      value: '${_hazardData!.airTemperature!.toStringAsFixed(1)}°C',
+                      sub: 'Measured',
+                      bg: Colors.grey.shade50,
                     ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        isCooling ? 'Cooling' : 'Effect',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: isCooling ? Colors.orange.shade700 : Colors.green.shade700,
-                          fontWeight: isCooling ? FontWeight.w600 : FontWeight.normal,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        '${coolingDelta > 0 ? '-' : '+'}${coolingDelta.abs().toStringAsFixed(1)}°C',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: isCooling ? Colors.orange.shade700 : Colors.green.shade700,
-                        ),
-                      ),
-                      Text(
-                        'Surface',
-                        style: TextStyle(
-                          fontSize: 9,
-                          color: isCooling ? Colors.orange.shade600 : Colors.green.shade600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+                    SizedBox(height: 8),
+                    tempBox(
+                      label: 'Surface',
+                      value: '${_hazardData!.surfaceTemperature!.toStringAsFixed(1)}°C',
+                      sub: 'Est. V2',
+                      bg: Colors.blue.shade50,
+                      border: Colors.blue.shade300,
+                      labelColor: Colors.blue.shade700,
+                      valueColor: Colors.blue.shade700,
+                      labelWeight: FontWeight.w600,
+                    ),
+                    SizedBox(height: 8),
+                    tempBox(
+                      label: isCooling ? 'Cooling' : 'Effect',
+                      value: '${coolingDelta > 0 ? '-' : '+'}${coolingDelta.abs().toStringAsFixed(1)}°C',
+                      sub: 'Surface',
+                      bg: isCooling ? Colors.orange.shade50 : Colors.green.shade50,
+                      border: isCooling ? Colors.orange.shade300 : Colors.green.shade300,
+                      labelColor: isCooling ? Colors.orange.shade700 : Colors.green.shade700,
+                      valueColor: isCooling ? Colors.orange.shade700 : Colors.green.shade700,
+                      labelWeight: isCooling ? FontWeight.w600 : FontWeight.normal,
+                    ),
+                  ],
+                );
+              }
+              return Row(children: boxes);
+            },
           ),
 
           if (_hazardData!.moisturePotential != null || _hazardData!.environmentalMultiplier != null) ...[
@@ -928,6 +981,7 @@ class _WinterHazardMonitorScreenState extends State<WinterHazardMonitorScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
                       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -948,7 +1002,10 @@ class _WinterHazardMonitorScreenState extends State<WinterHazardMonitorScreen> {
                           Text(
                             zone.zoneName,
                             style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.slate900),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
+                          SizedBox(height: 2),
                           Text(
                             'Zone ID: ${zone.zoneId}',
                             style: TextStyle(fontSize: 10, color: AppColors.textMuted),
@@ -956,6 +1013,7 @@ class _WinterHazardMonitorScreenState extends State<WinterHazardMonitorScreen> {
                         ],
                       ),
                     ),
+                    SizedBox(width: 8),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
@@ -965,8 +1023,10 @@ class _WinterHazardMonitorScreenState extends State<WinterHazardMonitorScreen> {
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                             color: _getRiskBandColor(zone.riskBand),
+                            height: 1,
                           ),
                         ),
+                        SizedBox(height: 4),
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(

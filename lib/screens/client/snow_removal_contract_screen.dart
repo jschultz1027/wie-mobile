@@ -142,6 +142,8 @@ class _SnowRemovalContractScreenState extends State<SnowRemovalContractScreen> {
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -181,49 +183,80 @@ class _SnowRemovalContractScreenState extends State<SnowRemovalContractScreen> {
 
   Widget _buildQuickStats() {
     final totalAreaK = _contract.totalAreaSqft / 1000;
+    final serviceTypeLabel = _contract.serviceType == 'pay_per_service'
+        ? 'Pay-per Service'
+        : _contract.serviceType == 'monthly_base'
+            ? 'Monthly Base Rate'
+            : 'Pre-paid Seasonal';
+
+    final stats = <({String label, String value, Color accent})>[
+      (label: 'Contract Period', value: '7 months', accent: AppColors.roleAdmin),
+      (
+        label: 'Properties Covered',
+        value: '${_contract.properties.length}',
+        accent: AppColors.blue600,
+      ),
+      (
+        label: 'Total Area',
+        value: '${totalAreaK.toStringAsFixed(1)}k sq ft',
+        accent: AppColors.success,
+      ),
+      (label: 'Service Type', value: serviceTypeLabel, accent: Colors.orange),
+    ];
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        final w = constraints.maxWidth;
-        final count = w > 400 ? 4 : 2;
-        final cardW = (w - 8.0 * (count - 1)) / count;
-        return Wrap(
-          spacing: 8,
-          runSpacing: 8,
+        const gap = 8.0;
+        if (constraints.maxWidth >= 640) {
+          return IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (var i = 0; i < stats.length; i++) ...[
+                  if (i > 0) const SizedBox(width: gap),
+                  Expanded(
+                    child: _statCard(
+                      stats[i].label,
+                      stats[i].value,
+                      stats[i].accent,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          );
+        }
+
+        // Phone / narrow: balanced 2×2 grid — equal width and equal height per row
+        return Column(
           children: [
-            SizedBox(
-              width: cardW.clamp(100.0, double.infinity),
-              child: _statCard(
-                'Contract Period',
-                '7 months',
-                AppColors.roleAdmin,
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: _statCard(stats[0].label, stats[0].value, stats[0].accent),
+                  ),
+                  const SizedBox(width: gap),
+                  Expanded(
+                    child: _statCard(stats[1].label, stats[1].value, stats[1].accent),
+                  ),
+                ],
               ),
             ),
-            SizedBox(
-              width: cardW.clamp(100.0, double.infinity),
-              child: _statCard(
-                'Properties Covered',
-                '${_contract.properties.length}',
-                AppColors.blue600,
-              ),
-            ),
-            SizedBox(
-              width: cardW.clamp(100.0, double.infinity),
-              child: _statCard(
-                'Total Area',
-                '${totalAreaK.toStringAsFixed(1)}k sq ft',
-                AppColors.success,
-              ),
-            ),
-            SizedBox(
-              width: cardW.clamp(100.0, double.infinity),
-              child: _statCard(
-                'Service Type Selected',
-                _contract.serviceType == 'pay_per_service'
-                    ? 'Pay-per Service Agreement'
-                    : _contract.serviceType == 'monthly_base'
-                        ? 'Monthly Base Rate'
-                        : 'Pre-paid Seasonal Rate',
-                Colors.orange,
+            const SizedBox(height: gap),
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: _statCard(stats[2].label, stats[2].value, stats[2].accent),
+                  ),
+                  const SizedBox(width: gap),
+                  Expanded(
+                    child: _statCard(stats[3].label, stats[3].value, stats[3].accent),
+                  ),
+                ],
               ),
             ),
           ],
@@ -235,6 +268,7 @@ class _SnowRemovalContractScreenState extends State<SnowRemovalContractScreen> {
   Widget _statCard(String label, String value, Color accent) {
     return Card(
       elevation: 2,
+      margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
         side: BorderSide(color: accent.withOpacity(0.5), width: 2),
@@ -243,25 +277,27 @@ class _SnowRemovalContractScreenState extends State<SnowRemovalContractScreen> {
         padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Text(
               label,
               style: TextStyle(
                 fontSize: 11,
+                fontWeight: FontWeight.w600,
                 color: Colors.grey.shade700,
               ),
-              maxLines: 1,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
             Text(
               value,
               style: const TextStyle(
-                fontSize: 16,
+                fontSize: 15,
                 fontWeight: FontWeight.bold,
+                height: 1.2,
               ),
-              maxLines: 1,
+              maxLines: 3,
               overflow: TextOverflow.ellipsis,
             ),
           ],
@@ -356,26 +392,37 @@ class _SnowRemovalContractScreenState extends State<SnowRemovalContractScreen> {
           ),
         ),
         const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: _infoTile(
-                Icons.calendar_today,
-                'Contract Period',
-                '${_formatDate(_contract.startDate)} - ${_formatDate(_contract.endDate)}',
-                AppColors.roleAdmin,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _infoTile(
-                Icons.location_on,
-                'Service Locations',
-                '${_contract.properties.length} Properties',
-                AppColors.blue600,
-              ),
-            ),
-          ],
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final periodTile = _infoTile(
+              Icons.calendar_today,
+              'Contract Period',
+              '${_formatDate(_contract.startDate)} - ${_formatDate(_contract.endDate)}',
+              AppColors.roleAdmin,
+            );
+            final locationsTile = _infoTile(
+              Icons.location_on,
+              'Service Locations',
+              '${_contract.properties.length} Properties',
+              AppColors.blue600,
+            );
+            if (constraints.maxWidth < 360) {
+              return Column(
+                children: [
+                  periodTile,
+                  const SizedBox(height: 8),
+                  locationsTile,
+                ],
+              );
+            }
+            return Row(
+              children: [
+                Expanded(child: periodTile),
+                const SizedBox(width: 8),
+                Expanded(child: locationsTile),
+              ],
+            );
+          },
         ),
         const SizedBox(height: 20),
         const Text(
@@ -484,6 +531,8 @@ class _SnowRemovalContractScreenState extends State<SnowRemovalContractScreen> {
                   fontSize: 13,
                   color: Colors.grey.shade800,
                 ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
               Text(
                 'Email: ${_contract.contact.email}',
@@ -491,6 +540,8 @@ class _SnowRemovalContractScreenState extends State<SnowRemovalContractScreen> {
                   fontSize: 13,
                   color: Colors.grey.shade800,
                 ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 6),
               Text(
@@ -500,6 +551,8 @@ class _SnowRemovalContractScreenState extends State<SnowRemovalContractScreen> {
                   fontWeight: FontWeight.w600,
                   color: AppColors.error,
                 ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -573,53 +626,66 @@ class _SnowRemovalContractScreenState extends State<SnowRemovalContractScreen> {
             ),
             child: Padding(
               padding: const EdgeInsets.all(14),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Icons.location_on,
-                    color: AppColors.roleAdmin,
-                    size: 24,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        color: AppColors.roleAdmin,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              p.name,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              p.address,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              'Service Area: ${p.areaSqft.toStringAsFixed(0)} sq ft',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          p.name,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          p.address,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          'Service Area: ${p.areaSqft.toStringAsFixed(0)} sq ft',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      AppNotification.info(context, 'View details on web');
-                    },
-                    child: const Text('View Details →'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.roleAdmin,
+                  const SizedBox(height: 10),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {
+                        AppNotification.info(context, 'View details on web');
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.roleAdmin,
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: const Text('View Details →'),
                     ),
                   ),
                 ],
@@ -634,7 +700,7 @@ class _SnowRemovalContractScreenState extends State<SnowRemovalContractScreen> {
   Widget _buildPricingTab() {
     final p = _contract.pricing;
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const Text(
           'Pricing Structure',
@@ -644,172 +710,171 @@ class _SnowRemovalContractScreenState extends State<SnowRemovalContractScreen> {
           ),
         ),
         const SizedBox(height: 12),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.success.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppColors.success.withOpacity(0.3)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Monthly Base Fee',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'Covers monitoring and first 5 service calls',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                ],
-              ),
-              Text(
-                '\$${p.monthlyBase.toStringAsFixed(0)}/month',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.success,
-                ),
-              ),
-            ],
-          ),
+        _pricingRateCard(
+          title: 'Monthly Base Fee',
+          description: 'Covers monitoring and first 5 service calls',
+          amount: '\$${p.monthlyBase.toStringAsFixed(0)}/month',
+          backgroundColor: AppColors.success.withOpacity(0.08),
+          borderColor: AppColors.success.withOpacity(0.3),
+          amountColor: AppColors.success,
         ),
         const SizedBox(height: 10),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.blue600.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppColors.blue600.withOpacity(0.3)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Per-Service Rate',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'Additional services beyond monthly base',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                ],
-              ),
-              Text(
-                '\$${p.perService.toStringAsFixed(0)}/service',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.blue600,
-                ),
-              ),
-            ],
-          ),
+        _pricingRateCard(
+          title: 'Per-Service Rate',
+          description: 'Additional services beyond monthly base',
+          amount: '\$${p.perService.toStringAsFixed(0)}/service',
+          backgroundColor: AppColors.blue600.withOpacity(0.08),
+          borderColor: AppColors.blue600.withOpacity(0.3),
+          amountColor: AppColors.blue600,
         ),
         const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(10),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth < 340) {
+              return Column(
+                children: [
+                  _pricingDetailCard(
+                    title: 'Snow Removal',
+                    rate: p.snowRemovalRate,
+                    subtitle: 'Heavy accumulation events',
+                  ),
+                  const SizedBox(height: 8),
+                  _pricingDetailCard(
+                    title: 'Salting & Ice Control',
+                    rate: p.saltingRate,
+                    subtitle: 'Material cost included',
+                  ),
+                ],
+              );
+            }
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _pricingDetailCard(
+                    title: 'Snow Removal',
+                    rate: p.snowRemovalRate,
+                    subtitle: 'Heavy accumulation events',
+                  ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(Icons.attach_money,
-                        color: Colors.grey.shade600, size: 28),
-                    const SizedBox(height: 6),
-                    const Text(
-                      'Snow Removal',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Text(
-                      p.snowRemovalRate,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      'Heavy accumulation events',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ],
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _pricingDetailCard(
+                    title: 'Salting & Ice Control',
+                    rate: p.saltingRate,
+                    subtitle: 'Material cost included',
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(Icons.attach_money,
-                        color: Colors.grey.shade600, size: 28),
-                    const SizedBox(height: 6),
-                    const Text(
-                      'Salting & Ice Control',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Text(
-                      p.saltingRate,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      'Material cost included',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+              ],
+            );
+          },
         ),
       ],
+    );
+  }
+
+  Widget _pricingRateCard({
+    required String title,
+    required String description,
+    required String amount,
+    required Color backgroundColor,
+    required Color borderColor,
+    required Color amountColor,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            description,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey.shade600,
+            ),
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            amount,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: amountColor,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _pricingDetailCard({
+    required String title,
+    required String rate,
+    required String subtitle,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.attach_money, color: Colors.grey.shade600, size: 28),
+          const SizedBox(height: 6),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            rate,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 11,
+              color: Colors.grey.shade600,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 
