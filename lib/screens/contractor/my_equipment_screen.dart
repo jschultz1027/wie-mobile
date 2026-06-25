@@ -1122,6 +1122,7 @@ class _MyEquipmentScreenState extends State<MyEquipmentScreen> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
                   hintText: 'Enter number of units',
                 ),
                 onChanged: (value) {
@@ -1144,6 +1145,7 @@ class _MyEquipmentScreenState extends State<MyEquipmentScreen> {
                 form: _capabilityForm,
                 onChanged: (form) => setState(() => _capabilityForm = form),
               ),
+              const SizedBox(height: 8),
 
               // Manual services
               if (_activeType == 'manual') ...[
