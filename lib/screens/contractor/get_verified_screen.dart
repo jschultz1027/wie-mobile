@@ -5,6 +5,7 @@ import '../../widgets/app_menu_button.dart';
 import '../../config/help_content.dart';
 import '../../widgets/tap_tooltip.dart';
 import 'package:provider/provider.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../config/app_colors.dart';
 import '../../models/get_verified.dart';
@@ -12,8 +13,11 @@ import '../../providers/auth_provider.dart';
 import '../../services/storage_service.dart';
 import '../../services/get_verified_service.dart';
 import '../../utils/image_compression.dart';
+import '../../utils/picker_file.dart';
 import '../../utils/app_notification.dart';
 import '../auth/login_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:intl/intl.dart';
 
 /// Contractor Get Verified. Matches web: /get-verified.
 /// Insurance, Driver's License (front + back), 2 References, Void Cheque.
@@ -178,6 +182,82 @@ class _GetVerifiedScreenState extends State<GetVerifiedScreen> {
     } catch (_) {}
   }
 
+  Future<void> _pickDocumentOrImage(ValueChanged<File?> setFile) async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: const ['jpg', 'jpeg', 'png', 'pdf'],
+        withData: true,
+      );
+      if (result == null || result.files.isEmpty) return;
+
+      final file = await PickerFileUtil.toLocalFile(
+        result.files.single,
+        prefix: 'verification_doc',
+      );
+
+      if (ImageCompression.isPdfPath(file.path)) {
+        setState(() => setFile(file));
+        return;
+      }
+      final compressed = await ImageCompression.compressPhotoFile(file);
+      setState(() => setFile(compressed));
+    } catch (e) {
+      if (mounted) AppNotification.error(context, 'Could not select file: $e');
+    }
+  }
+
+  Future<void> _pickVoidChequeFile() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: const ['jpg', 'jpeg', 'png', 'pdf'],
+        withData: true,
+      );
+      if (result == null || result.files.isEmpty) return;
+
+      final file = await PickerFileUtil.toLocalFile(
+        result.files.single,
+        prefix: 'void_cheque',
+      );
+
+      if (ImageCompression.isPdfPath(file.path)) {
+        setState(() => _voidChequeFile = file);
+        return;
+      }
+      final compressed = await ImageCompression.compressPhotoFile(file);
+      setState(() => _voidChequeFile = compressed);
+    } catch (e) {
+      if (mounted) AppNotification.error(context, 'Could not select file: $e');
+    }
+  }
+
+  Future<int> _verificationIdForUpload(String type, {VerificationItem? existing}) async {
+    if (existing != null &&
+        (existing.status == 'rejected' || existing.status == 'pending')) {
+      return existing.id;
+    }
+    final created = await _service.submitVerification(verificationType: type);
+    return created.id;
+  }
+
+  Future<void> _openDocumentUrl(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri == null) return;
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (mounted) AppNotification.error(context, 'Could not open document');
+    }
+  }
+
+  String? _formatUploadDate(String? iso) {
+    if (iso == null || iso.isEmpty) return null;
+    try {
+      return DateFormat.yMMMd().add_jm().format(DateTime.parse(iso).toLocal());
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> _submitInsurance() async {
     if (_insuranceFile == null) {
       AppNotification.warning(context, 'Please select a file');
@@ -185,18 +265,15 @@ class _GetVerifiedScreenState extends State<GetVerifiedScreen> {
     }
     setState(() => _uploading = true);
     try {
-      var v = _byType('insurance');
-      int id;
-      if (v != null && v.status == 'rejected') {
-        id = v.id;
-      } else {
-        v = await _service.submitVerification(verificationType: 'insurance');
-        id = v.id;
-      }
-      await _service.uploadDocument(id, _insuranceFile!);
+      final id = await _verificationIdForUpload(
+        'insurance',
+        existing: _byType('insurance'),
+      );
+      final result = await _service.uploadDocument(id, _insuranceFile!);
       if (mounted) {
         await _load();
-        AppNotification.success(context, 'Insurance document uploaded. It will be reviewed within 24–48 hours.');
+        final name = result.documentName ?? 'Insurance document';
+        AppNotification.success(context, '$name saved to your profile. Pending review.');
       }
     } on GetVerifiedException catch (e) {
       if (mounted) AppNotification.error(context, e.message);
@@ -218,18 +295,22 @@ class _GetVerifiedScreenState extends State<GetVerifiedScreen> {
     setState(() => _uploading = true);
     try {
       if (hasFront) {
-        var v = _byType('driver_license_front');
-        int id = (v != null && v.status == 'rejected') ? v.id : (await _service.submitVerification(verificationType: 'driver_license_front')).id;
+        final id = await _verificationIdForUpload(
+          'driver_license_front',
+          existing: _byType('driver_license_front'),
+        );
         await _service.uploadDocument(id, _licenseFrontFile!);
       }
       if (hasBack) {
-        var v = _byType('driver_license_back');
-        int id = (v != null && v.status == 'rejected') ? v.id : (await _service.submitVerification(verificationType: 'driver_license_back')).id;
+        final id = await _verificationIdForUpload(
+          'driver_license_back',
+          existing: _byType('driver_license_back'),
+        );
         await _service.uploadDocument(id, _licenseBackFile!);
       }
       if (mounted) {
         await _load();
-        AppNotification.success(context, 'Driver\'s license uploaded. It will be reviewed within 24–48 hours.');
+        AppNotification.success(context, 'Driver\'s license saved to your profile. Pending review.');
       }
     } on GetVerifiedException catch (e) {
       if (mounted) AppNotification.error(context, e.message);
@@ -288,11 +369,12 @@ class _GetVerifiedScreenState extends State<GetVerifiedScreen> {
     setState(() => _uploading = true);
     try {
       var v = _byType('void_cheque');
-      int id = (v != null && v.status == 'rejected') ? v.id : (await _service.submitVerification(verificationType: 'void_cheque')).id;
-      await _service.uploadDocument(id, _voidChequeFile!);
+      final id = await _verificationIdForUpload('void_cheque', existing: v);
+      final result = await _service.uploadDocument(id, _voidChequeFile!);
       if (mounted) {
         await _load();
-        AppNotification.success(context, 'Void cheque uploaded. It will be reviewed for payments.');
+        final name = result.documentName ?? 'Void cheque';
+        AppNotification.success(context, '$name saved to your profile. Pending review.');
       }
     } on GetVerifiedException catch (e) {
       if (mounted) AppNotification.error(context, e.message);
@@ -546,6 +628,164 @@ class _GetVerifiedScreenState extends State<GetVerifiedScreen> {
     );
   }
 
+  Widget _buildSavedDocumentCard(VerificationItem? item, {String? pendingLabel}) {
+    if (item == null || !item.hasUploadedDocument) return const SizedBox.shrink();
+
+    final uploadedAt = _formatUploadDate(item.updatedAt ?? item.createdAt);
+    final fileName = item.documentName ?? item.displayType;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.success.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.success.withOpacity(0.35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.check_circle, color: AppColors.success, size: 22),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      pendingLabel ?? 'Saved to your profile',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey.shade900,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      fileName,
+                      style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+                    ),
+                    if (uploadedAt != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        'Uploaded $uploadedAt',
+                        style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                      ),
+                    ],
+                    if (item.status == 'pending') ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        'Status: Pending review',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.warning),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (item.isImageDocument) ...[
+            const SizedBox(height: 12),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.network(
+                item.documentUrl!,
+                height: 140,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+              ),
+            ),
+          ] else if (item.isPdfDocument) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Icon(Icons.picture_as_pdf, color: AppColors.error, size: 28),
+                const SizedBox(width: 8),
+                Text('PDF document', style: TextStyle(fontSize: 13, color: Colors.grey.shade700)),
+              ],
+            ),
+          ],
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: () => _openDocumentUrl(item.documentUrl!),
+            icon: const Icon(Icons.open_in_new, size: 18),
+            label: const Text('View document'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.blue600,
+              side: BorderSide(color: AppColors.blue600.withOpacity(0.5)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReferencesSavedCard() {
+    if (_referencesStatus != 'pending' && _referencesStatus != 'approved') {
+      return const SizedBox.shrink();
+    }
+
+    final r1 = _byType('reference_1');
+    final r2 = _byType('reference_2');
+    if (r1?.referenceName == null || r2?.referenceName == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.success.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.success.withOpacity(0.35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.check_circle, color: AppColors.success, size: 22),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  _referencesStatus == 'approved'
+                      ? 'References approved'
+                      : 'References saved to your profile',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade900,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _referenceSummaryLine('Reference 1', r1!),
+          const SizedBox(height: 8),
+          _referenceSummaryLine('Reference 2', r2!),
+          if (_referencesStatus == 'pending') ...[
+            const SizedBox(height: 8),
+            Text(
+              'Status: Pending review',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.warning),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _referenceSummaryLine(String label, VerificationItem ref) {
+    return Text(
+      '$label: ${ref.referenceName} · ${ref.referenceCompany ?? ''}',
+      style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+    );
+  }
+
   Widget _buildRejectionBanner(String? reason) {
     if (reason == null || reason.isEmpty) return const SizedBox.shrink();
     return Container(
@@ -576,7 +816,9 @@ class _GetVerifiedScreenState extends State<GetVerifiedScreen> {
     final statusColor = _statusColor(status);
     final v = _byType('insurance');
     final fileLabel = _insuranceFile != null ? _insuranceFile!.path.split(RegExp(r'[/\\]')).last : null;
-    final showSubmit = (_insuranceFile != null) && (status == 'missing' || status == 'rejected');
+    final hasSaved = v?.hasUploadedDocument == true;
+    final showSubmit = (_insuranceFile != null) && (status == 'missing' || status == 'rejected' || status == 'pending');
+    final showPicker = status != 'approved';
     return Container(
       margin: const EdgeInsets.only(bottom: 0),
       padding: const EdgeInsets.all(20),
@@ -591,7 +833,19 @@ class _GetVerifiedScreenState extends State<GetVerifiedScreen> {
         children: [
           _sectionHeader('Insurance', 'Certificate of insurance (e.g. general liability)', status, statusColor, Icons.description_outlined),
           const SizedBox(height: 20),
-          _filePicker(fileLabel, () => _pickImage((f) => setState(() => _insuranceFile = f)), () => setState(() => _insuranceFile = null)),
+          if (hasSaved) _buildSavedDocumentCard(v, pendingLabel: status == 'pending' ? 'Upload complete — saved to your profile' : null),
+          if (showPicker || !hasSaved) ...[
+            if (hasSaved && status == 'pending')
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text('Replace document', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade700)),
+              ),
+            _filePicker(
+              fileLabel,
+              () => _pickDocumentOrImage((f) => setState(() => _insuranceFile = f)),
+              () => setState(() => _insuranceFile = null),
+            ),
+          ],
           _buildRejectionBanner(v?.rejectionReason),
           if (showSubmit) ...[
             const SizedBox(height: 14),
@@ -604,7 +858,7 @@ class _GetVerifiedScreenState extends State<GetVerifiedScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
-                child: Text(_uploading ? 'Uploading…' : status == 'rejected' ? 'Replace & re-submit Insurance' : 'Submit Insurance'),
+                child: Text(_uploading ? 'Uploading…' : status == 'rejected' ? 'Replace & re-submit Insurance' : hasSaved ? 'Update Insurance Document' : 'Submit Insurance'),
               ),
             ),
           ],
@@ -619,11 +873,15 @@ class _GetVerifiedScreenState extends State<GetVerifiedScreen> {
     final vBack = _byType('driver_license_back');
     final frontLabel = _licenseFrontFile != null ? _licenseFrontFile!.path.split(RegExp(r'[/\\]')).last : null;
     final backLabel = _licenseBackFile != null ? _licenseBackFile!.path.split(RegExp(r'[/\\]')).last : null;
+    final hasFrontSaved = vFront?.hasUploadedDocument == true;
+    final hasBackSaved = vBack?.hasUploadedDocument == true;
     final needFront = frontStatus == 'missing' || frontStatus == 'rejected';
     final needBack = backStatus == 'missing' || backStatus == 'rejected';
-    final hasFrontFile = needFront && _licenseFrontFile != null;
-    final hasBackFile = needBack && _licenseBackFile != null;
+    final hasFrontFile = _licenseFrontFile != null && (needFront || frontStatus == 'pending');
+    final hasBackFile = _licenseBackFile != null && (needBack || backStatus == 'pending');
     final showSubmit = hasFrontFile || hasBackFile;
+    final showFrontPicker = frontStatus != 'approved';
+    final showBackPicker = backStatus != 'approved';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 0),
@@ -639,6 +897,8 @@ class _GetVerifiedScreenState extends State<GetVerifiedScreen> {
         children: [
           _sectionHeader('Driver\'s License', 'Front and back of your driver\'s license', frontStatus == 'approved' && backStatus == 'approved' ? 'approved' : (frontStatus == 'rejected' || backStatus == 'rejected') ? 'rejected' : 'pending', statusColor, Icons.badge_outlined),
           const SizedBox(height: 20),
+          if (hasFrontSaved) _buildSavedDocumentCard(vFront, pendingLabel: 'Front — saved to your profile'),
+          if (hasBackSaved) _buildSavedDocumentCard(vBack, pendingLabel: 'Back — saved to your profile'),
           Row(
             children: [
               Expanded(
@@ -647,7 +907,10 @@ class _GetVerifiedScreenState extends State<GetVerifiedScreen> {
                   children: [
                     Text('Front', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade700)),
                     const SizedBox(height: 8),
-                    _filePickerSmall(frontLabel, () => _pickImage((f) => setState(() => _licenseFrontFile = f)), () => setState(() => _licenseFrontFile = null)),
+                    if (showFrontPicker || !hasFrontSaved)
+                      _filePickerSmall(frontLabel, () => _pickImage((f) => setState(() => _licenseFrontFile = f)), () => setState(() => _licenseFrontFile = null))
+                    else if (frontStatus == 'pending')
+                      Text('Under review', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
                   ],
                 ),
               ),
@@ -658,7 +921,10 @@ class _GetVerifiedScreenState extends State<GetVerifiedScreen> {
                   children: [
                     Text('Back', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade700)),
                     const SizedBox(height: 8),
-                    _filePickerSmall(backLabel, () => _pickImage((f) => setState(() => _licenseBackFile = f)), () => setState(() => _licenseBackFile = null)),
+                    if (showBackPicker || !hasBackSaved)
+                      _filePickerSmall(backLabel, () => _pickImage((f) => setState(() => _licenseBackFile = f)), () => setState(() => _licenseBackFile = null))
+                    else if (backStatus == 'pending')
+                      Text('Under review', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
                   ],
                 ),
               ),
@@ -687,6 +953,7 @@ class _GetVerifiedScreenState extends State<GetVerifiedScreen> {
 
   Widget _buildReferencesSection(String status) {
     final statusColor = _statusColor(status);
+    final readOnly = status == 'pending' || status == 'approved';
     return Container(
       margin: const EdgeInsets.only(bottom: 0),
       padding: const EdgeInsets.all(20),
@@ -701,22 +968,25 @@ class _GetVerifiedScreenState extends State<GetVerifiedScreen> {
         children: [
           _sectionHeader('2 References', 'From prior jobs or clients', status, statusColor, Icons.people_outline),
           const SizedBox(height: 20),
-          _buildReferenceBlock(1, _refName[0], _refCompany[0], _refPhone[0], _refEmail[0], _refRelationship[0]),
+          _buildReferencesSavedCard(),
+          _buildReferenceBlock(1, _refName[0], _refCompany[0], _refPhone[0], _refEmail[0], _refRelationship[0], readOnly: readOnly),
           const SizedBox(height: 16),
-          _buildReferenceBlock(2, _refName[1], _refCompany[1], _refPhone[1], _refEmail[1], _refRelationship[1]),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: _uploading ? null : _submitReferences,
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.blue600,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          _buildReferenceBlock(2, _refName[1], _refCompany[1], _refPhone[1], _refEmail[1], _refRelationship[1], readOnly: readOnly),
+          if (status == 'missing' || status == 'rejected') ...[
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: _uploading ? null : _submitReferences,
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.blue600,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: Text(_uploading ? 'Submitting…' : status == 'rejected' ? 'Update & re-submit References' : 'Submit References'),
               ),
-              child: Text(_uploading ? 'Submitting…' : status == 'rejected' ? 'Update & re-submit References' : 'Submit References'),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -726,7 +996,8 @@ class _GetVerifiedScreenState extends State<GetVerifiedScreen> {
     final statusColor = _statusColor(status);
     final v = _byType('void_cheque');
     final fileLabel = _voidChequeFile != null ? _voidChequeFile!.path.split(RegExp(r'[/\\]')).last : null;
-    final showSubmit = (_voidChequeFile != null) && (status == 'missing' || status == 'rejected');
+    final showSubmit = (_voidChequeFile != null) && (status == 'missing' || status == 'rejected' || status == 'pending');
+    final showPicker = status != 'approved';
     return Container(
       margin: const EdgeInsets.only(bottom: 0),
       padding: const EdgeInsets.all(20),
@@ -762,7 +1033,16 @@ class _GetVerifiedScreenState extends State<GetVerifiedScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          _filePicker(fileLabel, () => _pickImage((f) => setState(() => _voidChequeFile = f)), () => setState(() => _voidChequeFile = null)),
+          if (v?.hasUploadedDocument == true)
+            _buildSavedDocumentCard(v, pendingLabel: status == 'pending' ? 'Upload complete — saved to your profile' : null),
+          if (showPicker) ...[
+            if (v?.hasUploadedDocument == true && status == 'pending')
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text('Replace document', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade700)),
+              ),
+            _filePicker(fileLabel, _pickVoidChequeFile, () => setState(() => _voidChequeFile = null)),
+          ],
           _buildRejectionBanner(v?.rejectionReason),
           if (showSubmit) ...[
             const SizedBox(height: 14),
@@ -775,7 +1055,7 @@ class _GetVerifiedScreenState extends State<GetVerifiedScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
-                child: Text(_uploading ? 'Uploading…' : status == 'rejected' ? 'Replace & re-submit Void Cheque' : 'Upload Void Cheque'),
+                child: Text(_uploading ? 'Uploading…' : status == 'rejected' ? 'Replace & re-submit Void Cheque' : v?.hasUploadedDocument == true ? 'Update Void Cheque' : 'Upload Void Cheque'),
               ),
             ),
           ],
@@ -903,8 +1183,9 @@ class _GetVerifiedScreenState extends State<GetVerifiedScreen> {
     TextEditingController company,
     TextEditingController phone,
     TextEditingController email,
-    TextEditingController relationship,
-  ) {
+    TextEditingController relationship, {
+    bool readOnly = false,
+  }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -917,21 +1198,22 @@ class _GetVerifiedScreenState extends State<GetVerifiedScreen> {
         children: [
           Text('Reference $index', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade700)),
           const SizedBox(height: 12),
-          _field('Name', name),
-          _field('Company', company),
-          _field('Phone', phone),
-          _field('Email', email),
-          _field('Relationship', relationship),
+          _field('Name', name, readOnly: readOnly),
+          _field('Company', company, readOnly: readOnly),
+          _field('Phone', phone, readOnly: readOnly),
+          _field('Email', email, readOnly: readOnly),
+          _field('Relationship', relationship, readOnly: readOnly),
         ],
       ),
     );
   }
 
-  Widget _field(String label, TextEditingController c) {
+  Widget _field(String label, TextEditingController c, {bool readOnly = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: TextField(
         controller: c,
+        readOnly: readOnly,
         decoration: InputDecoration(
           labelText: label,
           labelStyle: TextStyle(color: Colors.grey.shade600, fontSize: 14),

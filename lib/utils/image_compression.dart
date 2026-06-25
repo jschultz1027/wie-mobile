@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -23,6 +24,40 @@ class ImageCompression {
         ext == '.heic' ||
         ext == '.heif' ||
         ext == '.webp';
+  }
+
+  static bool isPdfPath(String path) => p.extension(path).toLowerCase() == '.pdf';
+
+  static String uploadFilename(String path, {required String fallback}) {
+    final name = p.basename(path);
+    return name.isNotEmpty ? name : fallback;
+  }
+
+  static String mimeTypeForPath(String path) {
+    switch (p.extension(path).toLowerCase()) {
+      case '.pdf':
+        return 'application/pdf';
+      case '.png':
+        return 'image/png';
+      case '.gif':
+        return 'image/gif';
+      case '.webp':
+        return 'image/webp';
+      case '.heic':
+        return 'image/heic';
+      case '.heif':
+        return 'image/heif';
+      case '.mp4':
+        return 'video/mp4';
+      case '.mov':
+        return 'video/quicktime';
+      case '.m4v':
+        return 'video/x-m4v';
+      case '.jpg':
+      case '.jpeg':
+      default:
+        return 'image/jpeg';
+    }
   }
 
   /// Compress [file] to JPEG near [targetBytes]. Returns original if not an image.
@@ -108,10 +143,12 @@ class ImageCompression {
   }) async {
     final compressed = await compressPhotoFile(file);
     final bytes = await compressed.readAsBytes();
+    final filename = uploadFilename(compressed.path, fallback: 'photo.jpg');
     return http.MultipartFile.fromBytes(
       field,
       bytes,
       filename: filename,
+      contentType: MediaType.parse(mimeTypeForPath(filename)),
     );
   }
 

@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import '../utils/image_compression.dart';
 import '../config/app_config.dart';
 import '../models/property.dart';
 import '../models/zone_attributes.dart';
@@ -129,7 +131,14 @@ class ZoneManagerService {
     final request = http.MultipartRequest('POST', uri);
     final token = _storage.getToken();
     if (token != null) request.headers['Authorization'] = 'Bearer $token';
-    request.files.add(http.MultipartFile.fromBytes('file', fileBytes, filename: filename));
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        'file',
+        fileBytes,
+        filename: filename,
+        contentType: MediaType.parse(ImageCompression.mimeTypeForPath(filename)),
+      ),
+    );
     final streamed = await request.send();
     final r = await http.Response.fromStream(streamed);
     if (r.statusCode != 200) throw Exception('Upload failed: ${r.statusCode}');

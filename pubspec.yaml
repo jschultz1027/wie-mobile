@@ -62,6 +62,7 @@ dependencies:
   
   # Image/Video picker
   image_picker: ^1.0.7
+  file_picker: ^8.1.7
 
   # Photo compression before upload (~40KB target)
   flutter_image_compress: ^2.4.0

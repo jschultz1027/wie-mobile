@@ -8,11 +8,14 @@ import '../../widgets/app_menu_button.dart';
 import '../../config/help_content.dart';
 import '../../widgets/tap_tooltip.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as p;
 import 'package:toastification/toastification.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_colors.dart';
 import '../../config/app_config.dart';
+import '../../utils/image_compression.dart';
 import '../../services/storage_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../screens/auth/login_screen.dart';
@@ -212,12 +215,21 @@ class _MyEquipmentScreenState extends State<MyEquipmentScreen> {
 
       // Upload video if present (only for new videos)
       if (videoFile != null && savedEquipment['id'] != null) {
+        final bytes = await videoFile.readAsBytes();
+        final filename = p.basename(videoFile.path);
         var request = http.MultipartRequest(
           'POST',
           Uri.parse('${AppConfig.baseUrl}/api/v1/contractors/equipment/${savedEquipment['id']}/video'),
         );
         request.headers['Authorization'] = 'Bearer $token';
-        request.files.add(await http.MultipartFile.fromPath('file', videoFile.path));
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            'file',
+            bytes,
+            filename: filename,
+            contentType: MediaType.parse(ImageCompression.mimeTypeForPath(filename)),
+          ),
+        );
 
         final uploadResponse = await request.send();
         if (uploadResponse.statusCode != 200) {

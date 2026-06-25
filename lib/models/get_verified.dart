@@ -67,4 +67,17 @@ class VerificationItem {
         return verificationType;
     }
   }
+
+  bool get hasUploadedDocument =>
+      documentUrl != null && documentUrl!.trim().isNotEmpty;
+
+  bool get isImageDocument {
+    final name = (documentName ?? documentUrl ?? '').toLowerCase();
+    return RegExp(r'\.(jpe?g|png|gif|webp|heic|heif)$').hasMatch(name);
+  }
+
+  bool get isPdfDocument {
+    final name = (documentName ?? documentUrl ?? '').toLowerCase();
+    return name.endsWith('.pdf');
+  }
 }
