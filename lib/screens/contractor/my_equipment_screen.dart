@@ -19,6 +19,9 @@ import '../../utils/image_compression.dart';
 import '../../services/storage_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../screens/auth/login_screen.dart';
+import '../../models/equipment_item.dart';
+import '../../constants/equipment_constants.dart';
+import '../../widgets/equipment_capability_fields.dart';
 import 'video_player_screen.dart';
 
 class MyEquipmentScreen extends StatefulWidget {
@@ -37,17 +40,24 @@ class _MyEquipmentScreenState extends State<MyEquipmentScreen> {
   bool _saving = false;
   int? _editingId; // Track which equipment is being edited
 
+  // Shared capability details (truck / attachments)
+  EquipmentCapabilityForm _capabilityForm = EquipmentCapabilityForm();
+
   // Form states for Truck
-  bool _truckPlowBlade = false;
-  bool _truckSalter = false;
   int _truckUnits = 1;
   File? _truckVideo;
 
   // Form states for ATV
-  bool _atvPlowBlade = false;
-  bool _atvSalter = false;
   int _atvUnits = 1;
   File? _atvVideo;
+
+  // Skid steer
+  int _skidSteerUnits = 1;
+  File? _skidSteerVideo;
+
+  // Bobcat
+  int _bobcatUnits = 1;
+  File? _bobcatVideo;
 
   // Form states for Sidewalk Salter
   int _sidewalkUnits = 1;
@@ -132,6 +142,10 @@ class _MyEquipmentScreenState extends State<MyEquipmentScreen> {
             _truckVideo = videoFile;
           } else if (_activeType == 'atv') {
             _atvVideo = videoFile;
+          } else if (_activeType == 'skid_steer') {
+            _skidSteerVideo = videoFile;
+          } else if (_activeType == 'bobcat') {
+            _bobcatVideo = videoFile;
           } else if (_activeType == 'sidewalk_salter') {
             _sidewalkVideo = videoFile;
           }
@@ -157,13 +171,11 @@ class _MyEquipmentScreenState extends State<MyEquipmentScreen> {
       final Map<String, dynamic> equipmentData = {
         'equipment_type': _activeType,
         'units': 1,
-        'has_plow_blade': false,
-        'has_salter': false,
         'hand_bucket_salting': false,
         'hand_shoveling': false,
+        ..._capabilityForm.toPayload(),
       };
 
-      // Add id if editing
       if (_editingId != null) {
         equipmentData['id'] = _editingId;
       }
@@ -173,27 +185,51 @@ class _MyEquipmentScreenState extends State<MyEquipmentScreen> {
       switch (_activeType) {
         case 'truck':
           equipmentData['units'] = _truckUnits;
-          equipmentData['has_plow_blade'] = _truckPlowBlade;
-          equipmentData['has_salter'] = _truckSalter;
           videoFile = _truckVideo;
           break;
         case 'atv':
           equipmentData['units'] = _atvUnits;
-          equipmentData['has_plow_blade'] = _atvPlowBlade;
-          equipmentData['has_salter'] = _atvSalter;
           videoFile = _atvVideo;
+          break;
+        case 'skid_steer':
+          equipmentData['units'] = _skidSteerUnits;
+          videoFile = _skidSteerVideo;
+          break;
+        case 'bobcat':
+          equipmentData['units'] = _bobcatUnits;
+          videoFile = _bobcatVideo;
           break;
         case 'sidewalk_salter':
           equipmentData['units'] = _sidewalkUnits;
           videoFile = _sidewalkVideo;
+          equipmentData['has_plow_blade'] = false;
+          equipmentData['has_salter'] = false;
+          equipmentData['plow_type'] = null;
+          equipmentData['plow_width'] = null;
+          equipmentData['salter_type'] = null;
+          equipmentData['salter_capacity'] = null;
+          equipmentData['salter_materials'] = null;
           break;
         case 'manual':
           equipmentData['units'] = _manualUnits;
           equipmentData['hand_bucket_salting'] = _manualBucketSalting;
           equipmentData['hand_shoveling'] = _manualShoveling;
+          equipmentData['has_plow_blade'] = false;
+          equipmentData['has_salter'] = false;
+          equipmentData['plow_type'] = null;
+          equipmentData['plow_width'] = null;
+          equipmentData['salter_type'] = null;
+          equipmentData['salter_capacity'] = null;
+          equipmentData['salter_materials'] = null;
+          equipmentData['truck_make'] = null;
+          equipmentData['truck_model'] = null;
+          equipmentData['truck_year'] = null;
+          equipmentData['truck_size_class'] = null;
           break;
         case 'snowblower':
           equipmentData['units'] = _snowblowerUnits;
+          equipmentData['has_plow_blade'] = false;
+          equipmentData['has_salter'] = false;
           break;
       }
 
@@ -294,14 +330,15 @@ class _MyEquipmentScreenState extends State<MyEquipmentScreen> {
   void _resetForm() {
     setState(() {
       _editingId = null;
-      _truckPlowBlade = false;
-      _truckSalter = false;
+      _capabilityForm = EquipmentCapabilityForm();
       _truckUnits = 1;
       _truckVideo = null;
-      _atvPlowBlade = false;
-      _atvSalter = false;
       _atvUnits = 1;
       _atvVideo = null;
+      _skidSteerUnits = 1;
+      _skidSteerVideo = null;
+      _bobcatUnits = 1;
+      _bobcatVideo = null;
       _sidewalkUnits = 1;
       _sidewalkVideo = null;
       _manualBucketSalting = false;
@@ -316,18 +353,32 @@ class _MyEquipmentScreenState extends State<MyEquipmentScreen> {
       _editingId = item.id;
       _activeType = item.equipmentType;
       _showAddModal = true;
+      _capabilityForm = EquipmentCapabilityForm.fromJson({
+        'truck_make': item.truckMake,
+        'truck_model': item.truckModel,
+        'truck_year': item.truckYear,
+        'truck_size_class': item.truckSizeClass,
+        'has_plow_blade': item.hasPlowBlade,
+        'has_salter': item.hasSalter,
+        'plow_type': item.plowType,
+        'plow_width': item.plowWidth,
+        'salter_type': item.salterType,
+        'salter_capacity': item.salterCapacity,
+        'salter_materials': item.salterMaterials,
+      });
 
-      // Populate form based on equipment type
       switch (item.equipmentType) {
         case 'truck':
           _truckUnits = item.units;
-          _truckPlowBlade = item.hasPlowBlade;
-          _truckSalter = item.hasSalter;
           break;
         case 'atv':
           _atvUnits = item.units;
-          _atvPlowBlade = item.hasPlowBlade;
-          _atvSalter = item.hasSalter;
+          break;
+        case 'skid_steer':
+          _skidSteerUnits = item.units;
+          break;
+        case 'bobcat':
+          _bobcatUnits = item.units;
           break;
         case 'sidewalk_salter':
           _sidewalkUnits = item.units;
@@ -588,6 +639,14 @@ class _MyEquipmentScreenState extends State<MyEquipmentScreen> {
         icon = Icons.air;
         color = Colors.green;
         break;
+      case 'skid_steer':
+        icon = Icons.agriculture;
+        color = Colors.orange;
+        break;
+      case 'bobcat':
+        icon = Icons.precision_manufacturing;
+        color = Colors.amber;
+        break;
       case 'sidewalk_salter':
         icon = Icons.ac_unit;
         color = Colors.cyan;
@@ -709,18 +768,28 @@ class _MyEquipmentScreenState extends State<MyEquipmentScreen> {
           if (item.hasPlowBlade || item.hasSalter || item.handBucketSalting || item.handShoveling)
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-              child: Wrap(
-                spacing: 6,
-                runSpacing: 6,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (item.hasPlowBlade)
-                    _buildFeatureChip('Plow Blade', Colors.blue),
-                  if (item.hasSalter)
-                    _buildFeatureChip('Salter', Colors.green),
-                  if (item.handBucketSalting)
-                    _buildFeatureChip('Hand Bucket Salting', Colors.orange),
-                  if (item.handShoveling)
-                    _buildFeatureChip('Hand Shoveling', Colors.purple),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      if (item.hasPlowBlade) _buildFeatureChip('Plow Blade', Colors.blue),
+                      if (item.hasSalter) _buildFeatureChip('Salter', Colors.green),
+                      if (item.handBucketSalting) _buildFeatureChip('Hand Bucket Salting', Colors.orange),
+                      if (item.handShoveling) _buildFeatureChip('Hand Shoveling', Colors.purple),
+                    ],
+                  ),
+                  if (item.summaryLines.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    ...item.summaryLines.map(
+                      (line) => Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: Text(line, style: TextStyle(fontSize: 12, color: Colors.grey.shade700)),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -814,7 +883,7 @@ class _MyEquipmentScreenState extends State<MyEquipmentScreen> {
       child: Center(
         child: Container(
           margin: const EdgeInsets.all(16),
-          constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
+          constraints: const BoxConstraints(maxWidth: 600, maxHeight: 820),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
@@ -917,6 +986,22 @@ class _MyEquipmentScreenState extends State<MyEquipmentScreen> {
           Colors.purple,
           'snowblower',
         ),
+        const SizedBox(height: 12),
+        _buildEquipmentTypeButton(
+          'Skid Steer',
+          'Skid steer loaders with attachments',
+          Icons.agriculture,
+          Colors.orange,
+          'skid_steer',
+        ),
+        const SizedBox(height: 12),
+        _buildEquipmentTypeButton(
+          'Bobcat',
+          'Compact loaders with snow attachments',
+          Icons.precision_manufacturing,
+          Colors.amber,
+          'bobcat',
+        ),
       ],
     );
   }
@@ -930,7 +1015,10 @@ class _MyEquipmentScreenState extends State<MyEquipmentScreen> {
   ) {
     return InkWell(
       onTap: () {
-        setState(() => _activeType = type);
+        setState(() {
+          _activeType = type;
+          _capabilityForm = EquipmentCapabilityForm();
+        });
       },
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -1024,6 +1112,8 @@ class _MyEquipmentScreenState extends State<MyEquipmentScreen> {
                 controller: TextEditingController(
                   text: _activeType == 'truck' ? _truckUnits.toString() :
                         _activeType == 'atv' ? _atvUnits.toString() :
+                        _activeType == 'skid_steer' ? _skidSteerUnits.toString() :
+                        _activeType == 'bobcat' ? _bobcatUnits.toString() :
                         _activeType == 'sidewalk_salter' ? _sidewalkUnits.toString() :
                         _activeType == 'manual' ? _manualUnits.toString() :
                         _snowblowerUnits.toString(),
@@ -1039,6 +1129,8 @@ class _MyEquipmentScreenState extends State<MyEquipmentScreen> {
                   setState(() {
                     if (_activeType == 'truck') _truckUnits = units;
                     else if (_activeType == 'atv') _atvUnits = units;
+                    else if (_activeType == 'skid_steer') _skidSteerUnits = units;
+                    else if (_activeType == 'bobcat') _bobcatUnits = units;
                     else if (_activeType == 'sidewalk_salter') _sidewalkUnits = units;
                     else if (_activeType == 'manual') _manualUnits = units;
                     else if (_activeType == 'snowblower') _snowblowerUnits = units;
@@ -1047,41 +1139,11 @@ class _MyEquipmentScreenState extends State<MyEquipmentScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Truck/ATV attachments
-              if (_activeType == 'truck' || _activeType == 'atv') ...[
-                const Text(
-                  'Attachments',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 8),
-                CheckboxListTile(
-                  title: const Text('Plow Blade'),
-                  value: _activeType == 'truck' ? _truckPlowBlade : _atvPlowBlade,
-                  onChanged: (value) {
-                    setState(() {
-                      if (_activeType == 'truck') {
-                        _truckPlowBlade = value!;
-                      } else {
-                        _atvPlowBlade = value!;
-                      }
-                    });
-                  },
-                ),
-                CheckboxListTile(
-                  title: Text(_activeType == 'truck' ? 'Truck Salter' : 'ATV Salter'),
-                  value: _activeType == 'truck' ? _truckSalter : _atvSalter,
-                  onChanged: (value) {
-                    setState(() {
-                      if (_activeType == 'truck') {
-                        _truckSalter = value!;
-                      } else {
-                        _atvSalter = value!;
-                      }
-                    });
-                  },
-                ),
-                const SizedBox(height: 24),
-              ],
+              EquipmentCapabilityFields(
+                equipmentType: _activeType!,
+                form: _capabilityForm,
+                onChanged: (form) => setState(() => _capabilityForm = form),
+              ),
 
               // Manual services
               if (_activeType == 'manual') ...[
@@ -1169,6 +1231,8 @@ class _MyEquipmentScreenState extends State<MyEquipmentScreen> {
     File? video;
     if (_activeType == 'truck') video = _truckVideo;
     else if (_activeType == 'atv') video = _atvVideo;
+    else if (_activeType == 'skid_steer') video = _skidSteerVideo;
+    else if (_activeType == 'bobcat') video = _bobcatVideo;
     else if (_activeType == 'sidewalk_salter') video = _sidewalkVideo;
 
     return Container(
@@ -1193,6 +1257,8 @@ class _MyEquipmentScreenState extends State<MyEquipmentScreen> {
                 setState(() {
                   if (_activeType == 'truck') _truckVideo = null;
                   else if (_activeType == 'atv') _atvVideo = null;
+                  else if (_activeType == 'skid_steer') _skidSteerVideo = null;
+                  else if (_activeType == 'bobcat') _bobcatVideo = null;
                   else if (_activeType == 'sidewalk_salter') _sidewalkVideo = null;
                 });
               },
@@ -1219,44 +1285,6 @@ class _MyEquipmentScreenState extends State<MyEquipmentScreen> {
           ],
         ],
       ),
-    );
-  }
-}
-
-class EquipmentItem {
-  final int? id;
-  final String equipmentType;
-  final int units;
-  final bool hasPlowBlade;
-  final bool hasSalter;
-  final bool handBucketSalting;
-  final bool handShoveling;
-  final String? videoUrl;
-  final bool verified;
-
-  EquipmentItem({
-    this.id,
-    required this.equipmentType,
-    required this.units,
-    required this.hasPlowBlade,
-    required this.hasSalter,
-    required this.handBucketSalting,
-    required this.handShoveling,
-    this.videoUrl,
-    required this.verified,
-  });
-
-  factory EquipmentItem.fromJson(Map<String, dynamic> json) {
-    return EquipmentItem(
-      id: json['id'],
-      equipmentType: json['equipment_type'],
-      units: json['units'] ?? 1,
-      hasPlowBlade: json['has_plow_blade'] ?? false,
-      hasSalter: json['has_salter'] ?? false,
-      handBucketSalting: json['hand_bucket_salting'] ?? false,
-      handShoveling: json['hand_shoveling'] ?? false,
-      videoUrl: json['video_url'],
-      verified: json['verified'] ?? false,
     );
   }
 }
