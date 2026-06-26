@@ -233,9 +233,12 @@ class _MyEquipmentScreenState extends State<MyEquipmentScreen> {
           break;
       }
 
-      // Save equipment (POST handles both create and update)
-      final response = await http.post(
-        Uri.parse('${AppConfig.baseUrl}/api/v1/contractors/equipment'),
+      // Save equipment (POST = new row, PUT = update existing)
+      final saveUri = _editingId != null
+          ? Uri.parse('${AppConfig.baseUrl}/api/v1/contractors/equipment/$_editingId')
+          : Uri.parse('${AppConfig.baseUrl}/api/v1/contractors/equipment');
+      final response = await (_editingId != null ? http.put : http.post)(
+        saveUri,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
